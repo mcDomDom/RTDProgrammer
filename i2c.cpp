@@ -3,6 +3,7 @@
 #ifdef WIN32
 #include "CH341DLL_EN.H"
 #else
+#include <fcntl.h>
 #include "i2c-dev.h"
 #endif
 
