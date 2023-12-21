@@ -78,6 +78,7 @@ enum enIndex
 	FMT_SRMP2PS,	// FM TOWNS スーパーリアル麻雀P2&P3 31KHz
 	M72_RTYPE,		// IREM M72 R-TYPE 15KHz
 	MVS,			// NEO GEO MVS 15KHZ
+	GEN_15K_P,		// Generic 15KHz Progressive
 	MAX_INDEX
 };
 
@@ -134,7 +135,7 @@ L_RETRY:
 		short nHeight = ntohs(pInfo1->height);
 		short nHStart = ntohs(pInfo1->hstart);
 		short nVStart = ntohs(pInfo1->vstart);
-		if (640 <= nWidth && nWidth <= 4096 &&
+		if (512 <= nWidth && nWidth <= 4096 &&
 			200 <= nHeight && nHeight <= 2048 &&
 			nHStart < nWidth && nVStart < nHeight && 
 			5 <= pInfo1->htolerance && pInfo1->htolerance <= 10 &&
@@ -151,7 +152,7 @@ L_RETRY:
 			T *pInfo = (T *)&buf[nStart+nInfoSize*i];
 			short nWidth = ntohs(pInfo->width);
 			short nHeight = ntohs(pInfo->height);
-			if (nWidth < 640 || 4096 < nWidth ||
+			if (nWidth < 512 || 4096 < nWidth ||
 				nHeight < 200 || 2048 < nHeight) {
 				break;
 			}
@@ -245,7 +246,9 @@ WORD	nVTotal,
 WORD	nHStart,
 WORD	nVStart
 )
-{	int nOffset = nModeTableStart+sizeof(T)*nModeTableNo;
+{
+	if (nModeTableNo < 0) return -1;
+	int nOffset = nModeTableStart+sizeof(T)*nModeTableNo;
 	T *pInfo = (T *)&buf[nOffset];	
 
 	if (0 < cPolarity) pInfo->polarity = cPolarity;
@@ -291,7 +294,8 @@ int FindKey(BYTE key[], int nKeyLen)
 bool ModifyFirmware(enModel model)
 {
 	bool	bRet = false;
-	int		nPosSyncWidthCheck, nPosVHeightCheck, nPosDClkMin;
+	int		nPosSyncWidthCheck, nPosVHeightCheck, nPosVHeightCheck2, nPosDClkMin;
+	int		nOfsVHeightCheck;
 	BYTE	keyHSyncWidthCheck[] = {0xE0, 0xFA, 0xA3, 0xE0, 0xFB, 0x7C, 0x00, 0x7D, 0x07};
 	BYTE	keyVHeightCheck[] = {0x50, 0x12, 0xC3, 0xED, 0x94, 0xF0};
 	BYTE	keyDClkMin[] = {0x7F, 0x10, 0x7E, 0x15, 0x7D, 0x03, 0x7C, 0x00};	// 202000
@@ -302,11 +306,29 @@ bool ModifyFirmware(enModel model)
 		goto L_RET;
 	}
 
-	nPosVHeightCheck = FindKey(keyVHeightCheck, 6);
-	if (nPosVHeightCheck < 0) {
-		fprintf(stderr, "keyVHeightCheck not find\n");
-		//P2314Hにはなさそう？
-		//goto L_RET;
+	nPosVHeightCheck2 = -1;
+	if (model == P2314H) {	// P2214H/P2314Hはこちら
+		BYTE	keyVHeightCheck1[] = {0xC3, 0xE5, 0x5A, 0x94, 0xF0};
+		BYTE	keyVHeightCheck2[] = {0xC3, 0xE5, 0x56, 0x94, 0xEF};
+		nPosVHeightCheck = FindKey(keyVHeightCheck1, 5);
+		if (nPosVHeightCheck < 0) {
+			fprintf(stderr, "keyVHeightCheck not find\n");
+			goto L_RET;
+		}
+		nPosVHeightCheck2 = FindKey(keyVHeightCheck2, 5);
+		if (nPosVHeightCheck2 < 0) {
+			fprintf(stderr, "keyVHeightCheck2 not find\n");
+			goto L_RET;
+		}
+		nOfsVHeightCheck = 4;
+	}
+	else {
+		nPosVHeightCheck = FindKey(keyVHeightCheck, 6);
+		if (nPosVHeightCheck < 0) {
+			fprintf(stderr, "keyVHeightCheck not find\n");
+			goto L_RET;
+		}
+		nOfsVHeightCheck = 5;
 	}
 
 	nPosDClkMin = - 1;
@@ -319,7 +341,8 @@ bool ModifyFirmware(enModel model)
 	}
 
 	buf[nPosSyncWidthCheck+8] = 0x01;	// HSyncWidth*7 < HTotalのチェックを*1にして無効化
-	if (0 <= nPosVHeightCheck) buf[nPosVHeightCheck+5] = 0xC8;		// VTotalHeightの下限を240->200に緩和
+	buf[nPosVHeightCheck+nOfsVHeightCheck] = 0xC8;		// VTotalHeightの下限を240->200に緩和
+	if (0 <= nPosVHeightCheck2) buf[nPosVHeightCheck2+nOfsVHeightCheck] = 0xC7;		// VTotalHeightの下限を240->200に緩和
 	if (model == LHRD56_IPAD97) {
 		buf[nPosDClkMin+5] = 0x02;		// DClkMinを202000->136464に(50Hzだと170500くらいになるので)
 	}
@@ -330,7 +353,10 @@ L_RET:
 	return bRet;
 }
 
-int RTD2662ModeTableDump(const char *szPath, int nMode)
+int RTD2662ModeTableDump(
+const char	*szPath,	//!< i	:
+int			nMode		//!< i	:0=Dump 1=Modify -1=CheckOnly
+)
 {
 	int i, ret, nModeTableCount, nOffset;
 	int	nIdxNo[MAX_INDEX] = {-1};
@@ -391,6 +417,7 @@ int RTD2662ModeTableDump(const char *szPath, int nMode)
 	}
 
 	// P2314Hの画面ﾓｰﾄﾞと使用ﾌﾟﾘｾｯﾄﾃｰﾌﾞﾙNoの紐づけ 
+	memset(nIdxNo, -1, sizeof(nIdxNo));
 	nIdxNo[X68_15K_I] = 0;		//  0:640x350 31.5KHz/70Hz
 	nIdxNo[X68_15K_P] = 139;//1;		//  1;640x350 31.5KHz/70Hz
 	nIdxNo[X68_24K_I] = 4;		//  4:720x400 31.5KHz/70Hz
@@ -404,6 +431,7 @@ int RTD2662ModeTableDump(const char *szPath, int nMode)
 	nIdxNo[FMT_SRMP2PS] = 25;	// 25:848x480 31.0KHz/60Hz
 	nIdxNo[M72_RTYPE] = 26;		// 26:848x480 35.0KHz/70Hz
 	nIdxNo[MVS] = 27;			// 27:848x480 36.0KHz/72Hz
+	nIdxNo[GEN_15K_P] = 87;		// 87:1440x240 15.7KHz/60Hz
 
 	if (model == UNKNOWN) {
 		// ﾓﾃﾞﾙ自動判定 ModeTable開始位置から判定 中華液晶基板ではﾌｧｰﾑｳｪｱが頻繁に変わるからあまり意味なし
@@ -426,7 +454,8 @@ int RTD2662ModeTableDump(const char *szPath, int nMode)
 			nIdxNo[FMT_Raiden] = 25;	// 25:832x624 49.7KHz/74.5Hz
 			nIdxNo[FMT_SRMP2PS] = 26;	// 26:848x480 31.0KHz/60Hz
 			nIdxNo[M72_RTYPE] = 27;		// 27:848x480 35.0KHz/70Hzs
-			nIdxNo[MVS] = 28;			// 28:848x480 36.0KHz/72Hz
+			nIdxNo[MVS] = 37;			// 37:1152x864 53.7KHz/60Hz
+			nIdxNo[GEN_15K_P] = 86;		// 86:1440x240 15.7KHz/60Hz
 			break;
 		case 0xD97E:	// 同上 1366x768 UIは黒ジャックと同じ？
 			printf("LH-RD56(V+H) Light Blue Jack 1366x768\n");
@@ -485,11 +514,17 @@ int RTD2662ModeTableDump(const char *szPath, int nMode)
 		SetParameter<T_Info>(nIdxNo[FMT_Raiden],	0x0F,  768, 512, 323, 603, 3, 3, 1104, 536, 240, 19);		// TOWNS 雷電伝説
 		SetParameter<T_Info>(nIdxNo[M72_RTYPE],		0x0F,  768, 256, 157, 550, 5, 5, 1024, 284, 156, 24);		// R-TYPE基板 15.7KHz/55Hz KAPPY.さん提供
 		if (bModify) {
+			// 水平同期信号幅のﾁｪｯｸを外さないと下記ﾌﾟﾘｾｯﾄは映らない
 			SetParameter<T_Info>(nIdxNo[X68_FZ24K],		0x0F,  640, 448, 245, 524, 5, 5,  944, 469,  64, 10);		// X68000 Fantasy Zone 24KHz		※ModifyFirmwareが通用した場合のみ対応
 			SetParameter<T_Info>(nIdxNo[X68_Druaga],	0x0F,  672, 560, 315, 530, 5, 5, 1104, 595, 108, 31);		// X68000 Druaga 31KHz				※ModifyFirmwareが通用した場合のみ対応
 			SetParameter<T_Info>(nIdxNo[FMT_SRMP2PS],	0x0F,  736, 480, 320, 609, 3, 3,  896, 525, 144,  4);		// TOWNS スーパーリアル麻雀P2&P3	※ModifyFirmwareが通用した場合のみ対応
-			//どうも縦像度240未満の定義は動作しない？
-			//SetParameter<T_Info>(nIdxNo[MVS], 0x0F, 576, 224, 157, 591, 3, 3, 768, 263, 120, 24);				// MVS基板 15.7KHz/59.1Hz KAPPY.さん提供
+			//縦像度240未満の定義はVTotalHeight下限ﾁｪｯｸを除去しないと範囲外ｴﾗｰ表示で映らない
+			SetParameter<T_Info>(nIdxNo[MVS], 0x0F, 576, 224, 157, 591, 3, 3, 768, 263, 120, 24);				// MVS基板 15.7KHz/59.1Hz KAPPY.さん提供
+			SetParameter<T_Info>(nIdxNo[GEN_15K_P], 0x00, 0, 0, 0, 0, 5, 5, 0, 0, 0, 0);						// 元からある15.7KHz/Progressive/1440x240pの許容誤差を10->5に変更
+			if (model == LHRD56_IPAD97) {
+				SetParameter<T_Info>(136, 0x00, 0, 0, 0, 0, 5, 5, 0, 0, 0, 0);						// 元からある15.7KHz/Progressive/1440x240pの許容誤差を10->5に変更
+				SetParameter<T_Info>(148, 0x00, 0, 0, 0, 0, 5, 5, 0, 0, 0, 0);						// 元からある15.7KHz/Progressive/720x240pの許容誤差を10->5に変更
+			}
 		}
 
 		strcpy(szFilePath, MakePath(szFilePath, "_mod"));
