@@ -1,11 +1,7 @@
 // main.cpp : Defines the entry point for the console application.
 //
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <memory.h>
-#include <unistd.h>
+#include "stdafx.h"
 #include "crc.h"
 #include "i2c.h"
 #include "gff.h"
@@ -148,8 +144,13 @@ void SPIRead(uint32_t address, uint8_t *data, int32_t len)
     while (len > 0)
     {
         int32_t read_len = len;
+#ifdef WIN32
+        if (read_len > 128)
+            read_len = 128;
+#else
         if (read_len > 30)
             read_len = 30;
+#endif            
         ReadBytesFromAddr(0x70, data, read_len);
         data += read_len;
         len -= read_len;
@@ -230,10 +231,10 @@ void SetupChipCommands(uint32_t jedec_id)
     switch (manufacturer_id)
     {
     case 0xEF:
-    case 0xC2:    // Add Taka
-    case 0xC8:    // Add Taka
-    case 0xA1:  // Add Taka:
-    case 0x37:  // Add Taka:
+    case 0xC2:
+    case 0xC8:
+    case 0xA1:
+    case 0x37:
         // These are the codes for Winbond
         WriteReg(0x62, 0x06); // Flash Write enable op code
         WriteReg(0x63, 0x50); // Flash Write register op code
@@ -243,7 +244,7 @@ void SetupChipCommands(uint32_t jedec_id)
         WriteReg(0x6e, 0x05); // Flash read status op code.
         break;
     default:
-        printf("Can not handle manufacturer code %02x\n", manufacturer_id);
+        fprintf(stderr, "Can not handle manufacturer code %02x\n", manufacturer_id);
         exit(-6);
         break;
     }
@@ -309,13 +310,13 @@ static uint8_t* ReadFile(const char *file_name, uint32_t* size)
     uint8_t* result = NULL;
     if (NULL == file)
     {
-        printf("Can't open input file %s\n", file_name);
+        fprintf(stderr, "Can't open input file %s\n", file_name);
         return result;
     }
     uint64_t file_size64 = GetFileSize(file);
     if (file_size64 > 8*1024*1024)
     {
-        printf("This file looks to big %lld\n", file_size64);
+        fprintf(stderr, "This file looks to big %lld\n", file_size64);
         fclose(file);
         return result;
     }
@@ -323,7 +324,7 @@ static uint8_t* ReadFile(const char *file_name, uint32_t* size)
     result = new uint8_t[file_size];
     if (NULL == result)
     {
-        printf("Not enough RAM.\n");
+        fprintf(stderr, "Not enough RAM.\n");
         fclose(file);
         return result;
     }
@@ -335,7 +336,7 @@ static uint8_t* ReadFile(const char *file_name, uint32_t* size)
         // Handle GFF file
         if (file_size < 256)
         {
-            printf("This file looks to small %d\n", file_size);
+            fprintf(stderr, "This file looks to small %d\n", file_size);
             delete [] result;
             return NULL;
         }
@@ -343,14 +344,14 @@ static uint8_t* ReadFile(const char *file_name, uint32_t* size)
                             file_size - 256);
         if (gff_size == 0)
         {
-            printf("GFF Decoding failed for this file\n");
+            fprintf(stderr, "GFF Decoding failed for this file\n");
             delete [] result;
             return NULL;
         }
         uint8_t* gff_data = new uint8_t[gff_size];
         if (NULL == gff_data)
         {
-            printf("Not enough RAM.\n");
+            fprintf(stderr, "Not enough RAM.\n");
             delete [] result;
             return NULL;
         }
@@ -386,14 +387,14 @@ bool ProgramFlash(const char *input_file_name, uint32_t chip_size)
     {
         return false;
     }
-    
+
     memset(buf, 0xFF, sizeof(buf));
     if (memcmp(buf, prog, sizeof(buf)) == 0) {
 	    fprintf(stderr, "invalid firmware(0xFF)\n");
 	    return false;
     }
 
-    // RTD2556\82\CCWP\89\F0\8F\9C Add Taka
+    // RTD2556 write protect Add Taka
     WriteReg(0xF4, 0x29);
     fprintf(stderr, "Reg:0x29 Value=%02X\n", ReadReg(0xF5));
 
@@ -456,11 +457,16 @@ bool ProgramFlash(const char *input_file_name, uint32_t chip_size)
 
             // Write the content to register 0x70
             // Out USB gizmo supports max 63 bytes at a time.
+#if WIN32
+            WriteBytesToAddr(0x70, buffer, 128);
+            WriteBytesToAddr(0x70, buffer+128, 128);
+#else
             WriteBytesToAddr(0x70, buffer, 63);
             WriteBytesToAddr(0x70, buffer + 63, 63);
             WriteBytesToAddr(0x70, buffer + 126, 63);
             WriteBytesToAddr(0x70, buffer + 189, 63);
             WriteBytesToAddr(0x70, buffer + 252, 4);
+#endif
 
             WriteReg(0x6f, 0xa0); // Start Programing
         }
@@ -495,24 +501,26 @@ bool ProgramFlash(const char *input_file_name, uint32_t chip_size)
     return data_crc == chip_crc;
 }
 
-int RTD2662ModeTableDump(const char *szPath, bool bModify);
+int RTD2662ModeTableDump(const char *szPath, int nMode);
 
 int main(int argc, char* argv[])
 {
+	int nRet;
     bool bRet = true;
     uint8_t b, port = 0x4a, i2c = 1;
     uint32_t jedec_id;
+	char	szCheckFilePath[1024], szExt[256], *p;
 
     if (argc < 3) {
         printf("%s (-r/-w/-dump/-modify) filepath (i2c port) (size kbyte)\n", argv[0]);
         goto L_RET;
     }
     if (strcmp(argv[1], "-dump")==0) {
-        RTD2662ModeTableDump(argv[2], false);
+        RTD2662ModeTableDump(argv[2], 0);
         goto L_RET;
     }
     else if (strcmp(argv[1], "-modify")==0) {
-        RTD2662ModeTableDump(argv[2], true);
+        RTD2662ModeTableDump(argv[2], 1);
         goto L_RET;
     }
     if (4 <= argc) {
@@ -566,12 +574,28 @@ int main(int argc, char* argv[])
         bRet = SaveFlash(argv[2], size);
     }
     else if (3 <= argc &&strcmp(argv[1], "-w")==0) {
+		// check original firmware
+		strcpy(szCheckFilePath, argv[2]);
+		p = strrchr(szCheckFilePath, '.');
+		strcpy(szExt, p);
+		p = strstr(szCheckFilePath, "_mod");
+		if (p) {
+			*p = '\0';
+			strcat(szCheckFilePath, szExt);
+		}
+		printf("Check original firmware %s\n", szCheckFilePath);
+		nRet = RTD2662ModeTableDump(szCheckFilePath, -1);
+		if (nRet != 0) {
+			fprintf(stderr, "original firm %s not exist or invalid\n", szCheckFilePath);
+			goto L_RET;
+		}
+
         int size = chip->size_kb * 1024;
         if (5 <= argc) {
             size = atoi(argv[4])*1024;
         }
         printf("ProgramFlash %s size=%d(kbyte)\n", argv[2], size/1024);
-        bRet = ProgramFlash(argv[2], size);
+		bRet = ProgramFlash(argv[2], size);
     }
     if (bRet) {
         printf("Success!\n");

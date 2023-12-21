@@ -2,7 +2,7 @@
 
 #include <stdint.h>
 
-void InitI2C(int i2cport);
+bool InitI2C(int i2cport);
 void CloseI2C();
 
 void SetI2CAddr(uint8_t value);

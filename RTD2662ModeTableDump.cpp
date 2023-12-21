@@ -330,7 +330,7 @@ L_RET:
 	return bRet;
 }
 
-int RTD2662ModeTableDump(const char *szPath, bool bModify)
+int RTD2662ModeTableDump(const char *szPath, int nMode)
 {
 	int i, ret, nModeTableCount, nOffset;
 	int	nIdxNo[MAX_INDEX] = {-1};
@@ -340,6 +340,7 @@ int RTD2662ModeTableDump(const char *szPath, bool bModify)
 	enModel	model = UNKNOWN;
 	struct stat st;
 	char szFilePath[4096];
+	bool bModify;
 
 	strcpy(szFilePath, szPath);
 
@@ -459,7 +460,7 @@ int RTD2662ModeTableDump(const char *szPath, bool bModify)
 		fprintf(stderr, "unknown firmware\n");
 	}
 	
-	if (bModify && model != UNKNOWN && model != RTD2668) {
+	if (nMode == 1 && model != UNKNOWN && model != RTD2668) {
 
 #if 1
 		bModify = ModifyFirmware(model);
@@ -504,39 +505,40 @@ int RTD2662ModeTableDump(const char *szPath, bool bModify)
 			fprintf(stderr, "can't open %s\n", szFilePath);
 		}
 	}
-
-	strcpy(szFilePath, MakePath(szFilePath, "", ".csv"));
-	fpCsv = fopen(szFilePath, "wt");
-	if (!fpCsv) {
-		fprintf(stderr, "can't open %s\n", szFilePath);
-		ret = 2;
-		goto L_CLOSE;
-	}
-	nOffset = nModeTableStart;
-	if (model == RTD2668) {
-						//   0	        1         2         3         4         5         6         7         8        
-						//   123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
-		fprintf(fpCsv, "Idx,Offset,No  ,Type,PF  ,W   ,H   ,HFrq,VFrq,HTl,VTl,HTot,VTot,HSta,VSta,IVCo\n");
-	}
-	else {
-						//   0	        1         2         3         4         5         6         7         8        
-						//   123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
-		fprintf(fpCsv, "No ,Offset,PF  ,W   ,H   ,HFrq,VFrq,HTl,VTl,HTot,VTot,HSta,VSta\n");
-	}
-	for (i=0; i<nModeTableCount; i++) {
+	else if (nMode == 0) {
+		strcpy(szFilePath, MakePath(szFilePath, "", ".csv"));
+		fpCsv = fopen(szFilePath, "wt");
+		if (!fpCsv) {
+			fprintf(stderr, "can't open %s\n", szFilePath);
+			ret = 2;
+			goto L_CLOSE;
+		}
+		nOffset = nModeTableStart;
 		if (model == RTD2668) {
-			struct T_Info_23 *pInfo = (T_Info_23 *)&buf[nOffset];
-			DumpModeTableRecord(fpCsv, pInfo, i, nOffset);
-			nOffset += sizeof(T_Info_23);
+							//   0	        1         2         3         4         5         6         7         8        
+							//   123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
+			fprintf(fpCsv, "Idx,Offset,No  ,Type,PF  ,W   ,H   ,HFrq,VFrq,HTl,VTl,HTot,VTot,HSta,VSta,IVCo\n");
 		}
 		else {
-			struct T_Info *pInfo = (T_Info *)&buf[nOffset];
-			DumpModeTableRecord(fpCsv, pInfo, i, nOffset);
-			nOffset += sizeof(T_Info);
+							//   0	        1         2         3         4         5         6         7         8        
+							//   123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890
+			fprintf(fpCsv, "No ,Offset,PF  ,W   ,H   ,HFrq,VFrq,HTl,VTl,HTot,VTot,HSta,VSta\n");
+		}
+		for (i=0; i<nModeTableCount; i++) {
+			if (model == RTD2668) {
+				struct T_Info_23 *pInfo = (T_Info_23 *)&buf[nOffset];
+				DumpModeTableRecord(fpCsv, pInfo, i, nOffset);
+				nOffset += sizeof(T_Info_23);
+			}
+			else {
+				struct T_Info *pInfo = (T_Info *)&buf[nOffset];
+				DumpModeTableRecord(fpCsv, pInfo, i, nOffset);
+				nOffset += sizeof(T_Info);
+			}
 		}
 	}
 
-	ret = 0;
+	ret = (model == UNKNOWN) ? -1 : 0;
 
 L_FREE:
 	free(buf);
