@@ -17,5 +17,7 @@
 #else
 #include <arpa/inet.h>
 #include <libgen.h>
+#include <fcntl.h>
+#include <unistd.h>
 #endif
 
