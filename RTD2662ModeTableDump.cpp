@@ -335,7 +335,7 @@ int RTD2662ModeTableDump(const char *szPath, int nMode)
 	int i, ret, nModeTableCount, nOffset;
 	int	nIdxNo[MAX_INDEX] = {-1};
 	FILE *fp = NULL;
-	FILE *fpCsv = stdout;
+	FILE *fpCsv = NULL;
 	FILE *fpOut = NULL;
 	enModel	model = UNKNOWN;
 	struct stat st;
@@ -408,8 +408,8 @@ int RTD2662ModeTableDump(const char *szPath, int nMode)
 	if (model == UNKNOWN) {
 		// ÓÃŞÙ©“®”»’è ModeTableŠJnˆÊ’u‚©‚ç”»’è ’†‰Ø‰t»Šî”Â‚Å‚ÍÌ§°Ñ³ª±‚ª•p”É‚É•Ï‚í‚é‚©‚ç‚ ‚Ü‚èˆÓ–¡‚È‚µ
 		switch (nModeTableStart) {
-		case 0x200A:	// P2314H
-			printf("DELL P2314H\n");
+		case 0x200A:	// P2214H/P2314H
+			printf("DELL P2214H/P2314H\n");
 			model = P2314H;
 			break;
 		case 0x32A74:	// 252B9
@@ -543,7 +543,7 @@ int RTD2662ModeTableDump(const char *szPath, int nMode)
 L_FREE:
 	free(buf);
 L_CLOSE_CSV:
-	fclose(fpCsv);
+	if (fpCsv) fclose(fpCsv);
 L_CLOSE:
 	fclose(fp);
 L_RET:

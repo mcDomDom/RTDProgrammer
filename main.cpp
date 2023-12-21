@@ -396,7 +396,7 @@ bool ProgramFlash(const char *input_file_name, uint32_t chip_size)
 
     // RTD2556 write protect Add Taka
     WriteReg(0xF4, 0x29);
-    fprintf(stderr, "Reg:0x29 Value=%02X\n", ReadReg(0xF5));
+    printf("Reg:0x29 Value=%02X\n", ReadReg(0xF5));
 
     WriteReg(0xF4, 0x29);
     WriteReg(0xF5, 0x01);
@@ -405,7 +405,7 @@ bool ProgramFlash(const char *input_file_name, uint32_t chip_size)
     WriteReg(0xF5, 0xFE);
 
     WriteReg(0xF4, 0x19);
-    fprintf(stderr, "Reg:0x19 Value=%02X\n", ReadReg(0xF5));
+    printf("Reg:0x19 Value=%02X\n", ReadReg(0xF5));
 
     WriteReg(0xF4, 0x19);
     WriteReg(0xF5, 0x01);
