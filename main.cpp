@@ -6,6 +6,10 @@
 #include "i2c.h"
 #include "gff.h"
 
+#ifndef WIN32
+#define	stricmp strcasecmp
+#endif
+
 struct FlashDesc
 {
     const char* device_name;
@@ -512,7 +516,7 @@ int main(int argc, char* argv[])
 	char	szCheckFilePath[1024], szExt[256], *p;
 
     if (argc < 3) {
-        printf("%s (-r/-w/-dump/-modify) filepath (i2c port) (size kbyte)\n", argv[0]);
+        printf("%s (-r/-w/-dump/-modify) file.bin (i2c port) (size kbyte)\n", argv[0]);
         goto L_RET;
     }
     if (strcmp(argv[1], "-dump")==0) {
@@ -578,6 +582,10 @@ int main(int argc, char* argv[])
 		strcpy(szCheckFilePath, argv[2]);
 		p = strrchr(szCheckFilePath, '.');
 		strcpy(szExt, p);
+		if (stricmp(szExt, ".bin") != 0) {
+			fprintf(stderr, "The extension must be .bin\n");
+			goto L_RET;
+		}
 		p = strstr(szCheckFilePath, "_mod");
 		if (p) {
 			*p = '\0';

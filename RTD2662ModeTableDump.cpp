@@ -60,7 +60,8 @@ enum enModel
 	M_RT2556_FHD,		// 黒ジャック基板にgithubで見つけたファームウェア適用
 	PHI_252B9,			// PHILIPS 252B9/11
 	PCB800099,			// RTD2662使用基板
-	RTD2668
+	RTD2668,
+	V_M56VDA_IPAD97,	// V.M56VDA iPad基板 okaz氏情報提供ありがとうございます
 };
 
 enum enIndex
@@ -332,7 +333,7 @@ bool ModifyFirmware(enModel model)
 	}
 
 	nPosDClkMin = - 1;
-	if (model == LHRD56_IPAD97) {
+	if (model == LHRD56_IPAD97 || model == V_M56VDA_IPAD97) {
 		nPosDClkMin = FindKey(keyDClkMin, 8);
 		if (nPosDClkMin < 0) {
 			fprintf(stderr, "keyDClkMin not find\n");
@@ -341,10 +342,16 @@ bool ModifyFirmware(enModel model)
 	}
 
 	buf[nPosSyncWidthCheck+8] = 0x01;	// HSyncWidth*7 < HTotalのチェックを*1にして無効化
+	printf("Disable sync width check buf[%08X]=%X\n", nPosSyncWidthCheck+8, buf[nPosSyncWidthCheck+8]);
 	buf[nPosVHeightCheck+nOfsVHeightCheck] = 0xC8;		// VTotalHeightの下限を240->200に緩和
-	if (0 <= nPosVHeightCheck2) buf[nPosVHeightCheck2+nOfsVHeightCheck] = 0xC7;		// VTotalHeightの下限を240->200に緩和
-	if (model == LHRD56_IPAD97) {
+	printf("Disalbe vheight check buf[%08X]=%X\n", nPosVHeightCheck+nOfsVHeightCheck, buf[nPosVHeightCheck+nOfsVHeightCheck]);
+	if (0 <= nPosVHeightCheck2) {
+		buf[nPosVHeightCheck2+nOfsVHeightCheck] = 0xC7;		// VTotalHeightの下限を240->200に緩和
+		printf("Disalbe vheight chekc2 buf[%08X]=%X\n", nPosVHeightCheck2+nOfsVHeightCheck, buf[nPosVHeightCheck2+nOfsVHeightCheck]);
+	}
+	if (model == LHRD56_IPAD97 || model == V_M56VDA_IPAD97) {
 		buf[nPosDClkMin+5] = 0x02;		// DClkMinを202000->136464に(50Hzだと170500くらいになるので)
+		printf("Change dcl min buf[%08X]=%X\n", nPosDClkMin+5, buf[nPosDClkMin+5]);
 	}
 
 	bRet = true;
@@ -467,6 +474,19 @@ int			nMode		//!< i	:0=Dump 1=Modify -1=CheckOnly
 			model = M_RT2556_FHD;
 			// プリセットテーブルはP2314Hとほぼ同じ
 			break;
+		case 0x22129:	// okaz氏iPad基板 V.M56VDA
+			printf("V.M56VDA Black Jack iPad 9.7\n");
+			model = V_M56VDA_IPAD97;
+			// プリセットテーブルはLH-RD56(V+H) iPad 9.7と同じ
+			nIdxNo[X68_Dash] = 15;		// 15:720x480 29.8KHz/59.9Hz
+			nIdxNo[X68_FZ24K] = 17;		// 17:720x576 35.8KHz/60Hz
+			nIdxNo[X68_Druaga] = 18;	// 18:720x576 45.5KHz/75.6Hz
+			nIdxNo[FMT_Raiden] = 25;	// 25:832x624 49.7KHz/74.5Hz
+			nIdxNo[FMT_SRMP2PS] = 26;	// 26:848x480 31.0KHz/60Hz
+			nIdxNo[M72_RTYPE] = 27;		// 27:848x480 35.0KHz/70Hzs
+			nIdxNo[MVS] = 37;			// 37:1152x864 53.7KHz/60Hz
+			nIdxNo[GEN_15K_P] = 86;		// 86:1440x240 15.7KHz/60Hz
+			break;
 		case 0x39c7:	// PCB800099(RTD2660/RTD2662)
 			model = PCB800099;
 			nIdxNo[X68_15K_I] = 0;
@@ -519,11 +539,16 @@ int			nMode		//!< i	:0=Dump 1=Modify -1=CheckOnly
 			SetParameter<T_Info>(nIdxNo[X68_Druaga],	0x0F,  672, 560, 315, 530, 5, 5, 1104, 595, 108, 31);		// X68000 Druaga 31KHz				※ModifyFirmwareが通用した場合のみ対応
 			SetParameter<T_Info>(nIdxNo[FMT_SRMP2PS],	0x0F,  736, 480, 320, 609, 3, 3,  896, 525, 144,  4);		// TOWNS スーパーリアル麻雀P2&P3	※ModifyFirmwareが通用した場合のみ対応
 			//縦像度240未満の定義はVTotalHeight下限ﾁｪｯｸを除去しないと範囲外ｴﾗｰ表示で映らない
-			SetParameter<T_Info>(nIdxNo[MVS], 0x0F, 576, 224, 157, 591, 3, 3, 768, 263, 120, 24);				// MVS基板 15.7KHz/59.1Hz KAPPY.さん提供
 			SetParameter<T_Info>(nIdxNo[GEN_15K_P], 0x00, 0, 0, 0, 0, 5, 5, 0, 0, 0, 0);						// 元からある15.7KHz/Progressive/1440x240pの許容誤差を10->5に変更
-			if (model == LHRD56_IPAD97) {
+			if (model == LHRD56_IPAD97 || model == V_M56VDA_IPAD97) {	// VTotal 232以下ﾀﾞﾒっぽい
+				//buf[0x3E040] = 0xE4;	// DEBUG MODE ENABLE
+				//buf[0x4A950] = 0xC3;	// D3->C3 UserInterfaceGetDclkNoSupportStatusを常にreturn FALSEに
+				SetParameter<T_Info>(nIdxNo[MVS], 0x0F, 576, 232, 157, 591, 3, 3, 768, 263, 120, 24);				// MVS基板 15.7KHz/59.1Hz KAPPY.さん提供
 				SetParameter<T_Info>(136, 0x00, 0, 0, 0, 0, 5, 5, 0, 0, 0, 0);						// 元からある15.7KHz/Progressive/1440x240pの許容誤差を10->5に変更
 				SetParameter<T_Info>(148, 0x00, 0, 0, 0, 0, 5, 5, 0, 0, 0, 0);						// 元からある15.7KHz/Progressive/720x240pの許容誤差を10->5に変更
+			}
+			else {
+				SetParameter<T_Info>(nIdxNo[MVS], 0x0F, 576, 224, 157, 591, 3, 3, 768, 263, 120, 24);				// MVS基板 15.7KHz/59.1Hz KAPPY.さん提供
 			}
 		}
 
