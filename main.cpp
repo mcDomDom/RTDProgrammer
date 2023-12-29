@@ -64,6 +64,8 @@ static const FlashDesc FlashDevices[] =
     {"FM25Q08", 0xA14014,    1024,      256, 64},
     // AM
     {"A25L040", 0x373013,    512,       256, 64},
+    // Puya
+    {"P25Q40SH", 0x856013,   512,       256, 64},
     {NULL, 0, 0, 0, 0}
 };
 
@@ -186,6 +188,9 @@ void PrintManufacturer(uint32_t id)
     case 0x37:
        printf("AM");
         break; 
+    case 0x85:
+       printf("Puya");
+        break; 
     default:
         printf("Unknown");
         break;
@@ -239,6 +244,7 @@ void SetupChipCommands(uint32_t jedec_id)
     case 0xC8:
     case 0xA1:
     case 0x37:
+    case 0x85:
         // These are the codes for Winbond
         WriteReg(0x62, 0x06); // Flash Write enable op code
         WriteReg(0x63, 0x50); // Flash Write register op code

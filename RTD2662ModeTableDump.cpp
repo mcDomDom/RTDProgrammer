@@ -62,6 +62,7 @@ enum enModel
 	PCB800099,			// RTD2662使用基板
 	RTD2668,
 	V_M56VDA_IPAD97,	// V.M56VDA iPad基板 okaz氏情報提供ありがとうございます
+	JG2555TC_IPAD97,	// JG2555TC iPad基板 Thanks Newman
 };
 
 enum enIndex
@@ -487,6 +488,11 @@ int			nMode		//!< i	:0=Dump 1=Modify -1=CheckOnly
 			nIdxNo[MVS] = 37;			// 37:1152x864 53.7KHz/60Hz
 			nIdxNo[GEN_15K_P] = 86;		// 86:1440x240 15.7KHz/60Hz
 			break;
+		case 0x32000:	// JG2555TC
+			printf("JG2555TC Balck Jack iPad 9.7\n");
+			model = JG2555TC_IPAD97;
+			// プリセットテーブルはP2314Hとほぼ同じ
+			break;
 		case 0x39c7:	// PCB800099(RTD2660/RTD2662)
 			model = PCB800099;
 			nIdxNo[X68_15K_I] = 0;
@@ -512,12 +518,14 @@ int			nMode		//!< i	:0=Dump 1=Modify -1=CheckOnly
 	if (nMode == 1 && model != UNKNOWN && model != RTD2668) {
 
 #if 1
-		bModify = ModifyFirmware(model);
-		if (bModify) {
-			printf("*** modify firmware success ***\n");
-		}
-		else {
-			fprintf(stderr, "can't modify firmware\n");
+		if (model != JG2555TC_IPAD97) {
+			bModify = ModifyFirmware(model);
+			if (bModify) {
+				printf("*** modify firmware success ***\n");
+			}
+			else {
+				fprintf(stderr, "can't modify firmware\n");
+			}
 		}
 #else
 		bModify = false;
@@ -556,7 +564,10 @@ int			nMode		//!< i	:0=Dump 1=Modify -1=CheckOnly
 		fpOut = fopen(szFilePath, "wb");
 		if (fpOut) {
 			ret = fwrite(buf, nFileLen, 1, fpOut);
-			if (!ret) {
+			if (ret) {
+				printf("modify done\n");
+			}
+			else {
 				fprintf(stderr, "can't write %s\n", szFilePath);
 			}
 			fclose(fpOut);
