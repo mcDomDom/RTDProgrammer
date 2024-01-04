@@ -18,7 +18,7 @@
 #endif
 
 #pragma pack(push, 1) 
-	struct T_Info {
+	struct T_Info {		// 19Byte/Rec
 		BYTE	polarity;	// 極性フラグ 0x20:SDTV? 0x40:HDTV?  0x10:Interlace?
 		WORD	width;
 		WORD	height;
@@ -33,7 +33,7 @@
 	};
 
 	// RTD2668
-	struct T_Info_23 {
+	struct T_Info_23 {	// 23Byte/Rec
 		BYTE	no;
 		BYTE	type;
 		BYTE	polarity;	// 極性フラグ 0x20:SDTV? 0x40:HDTV?  0x10:Interlace?
@@ -140,10 +140,10 @@ L_RETRY:
 		if (512 <= nWidth && nWidth <= 4096 &&
 			200 <= nHeight && nHeight <= 2048 &&
 			nHStart < nWidth && nVStart < nHeight && 
-			5 <= pInfo1->htolerance && pInfo1->htolerance <= 10 &&
-			5 <= pInfo1->vtolerance && pInfo1->vtolerance <= 10 &&
-			5 <= pInfo2->htolerance && pInfo2->htolerance <= 10 &&
-			5 <= pInfo2->vtolerance && pInfo2->vtolerance <= 10) {
+			5 <= pInfo1->htolerance && pInfo1->htolerance <= 12 &&
+			5 <= pInfo1->vtolerance && pInfo1->vtolerance <= 12 &&
+			5 <= pInfo2->htolerance && pInfo2->htolerance <= 12 &&
+			5 <= pInfo2->vtolerance && pInfo2->vtolerance <= 12) {
 			nStart = i;
 			break;
 		}
@@ -494,12 +494,13 @@ int			nMode		//!< i	:0=Dump 1=Modify -1=CheckOnly
 			// プリセットテーブルはP2314Hとほぼ同じ
 			break;
 		case 0x39c7:	// PCB800099(RTD2660/RTD2662)
+			printf("PCB800099\n");
 			model = PCB800099;
-			nIdxNo[X68_15K_I] = 0;
-			nIdxNo[X68_15K_P] = 3;
-			nIdxNo[X68_24K_I] = 4;
-			nIdxNo[X68_24K_P] = 13;
-			nIdxNo[X68_31K] = 18;
+			nIdxNo[X68_15K_I] = 0;		
+			nIdxNo[X68_15K_P] = 3;		
+			nIdxNo[X68_24K_I] = 4;		
+			nIdxNo[X68_24K_P] = 13;		
+			nIdxNo[X68_31K] = 18;		
 			nIdxNo[X68_Memtest] = 19;
 			nIdxNo[X68_Dash] = 20;
 			nIdxNo[X68_FZ24K] = 21;
@@ -508,6 +509,23 @@ int			nMode		//!< i	:0=Dump 1=Modify -1=CheckOnly
 			nIdxNo[FMT_SRMP2PS] = 24;
 			nIdxNo[M72_RTYPE] = 25;
 			nIdxNo[MVS] = 26;
+			break;
+		case 0x3841:	// PCB800099(Newman BluePCB)
+			printf("PCB800099(Newman BluePCB)\n");
+			model = PCB800099;
+			nIdxNo[X68_15K_I] = 0;		// 640x350
+			nIdxNo[X68_15K_P] = 3;		// 720x400
+			nIdxNo[X68_24K_I] = 4;		// 720x400
+			nIdxNo[X68_24K_P] = 6;		// 720x400
+			nIdxNo[X68_31K] = 12;		// 800x480
+			nIdxNo[X68_Memtest] = 13;	// 800x480
+			nIdxNo[X68_Dash] = 19;		// 832x624
+			nIdxNo[X68_FZ24K] = 20;		// 1024x600
+			nIdxNo[X68_Druaga] = 27;	// 1024x800
+			nIdxNo[FMT_Raiden] = 28;	// 1024x800
+			nIdxNo[FMT_SRMP2PS] = 29;	// 1152x864
+			nIdxNo[M72_RTYPE] = 30;		// 1152x864
+			nIdxNo[MVS] = 31;			// 1152x864
 			break;
 		}
 	}
@@ -518,7 +536,7 @@ int			nMode		//!< i	:0=Dump 1=Modify -1=CheckOnly
 	if (nMode == 1 && model != UNKNOWN && model != RTD2668) {
 
 #if 1
-		if (model != JG2555TC_IPAD97) {
+		if (model != JG2555TC_IPAD97 && model != PCB800099) {
 			bModify = ModifyFirmware(model);
 			if (bModify) {
 				printf("*** modify firmware success ***\n");
@@ -541,8 +559,8 @@ int			nMode		//!< i	:0=Dump 1=Modify -1=CheckOnly
 		SetParameter<T_Info>(nIdxNo[X68_Dash],		0x0F,  768, 536, 315, 543, 5, 5, 1176, 580, 308, 38);		// X68000 ダッシュ野郎
 		SetParameter<T_Info>(nIdxNo[FMT_Raiden],	0x0F,  768, 512, 323, 603, 3, 3, 1104, 536, 240, 19);		// TOWNS 雷電伝説
 		SetParameter<T_Info>(nIdxNo[M72_RTYPE],		0x0F,  768, 256, 157, 550, 5, 5, 1024, 284, 156, 24);		// R-TYPE基板 15.7KHz/55Hz KAPPY.さん提供
-		if (bModify) {
-			// 水平同期信号幅のﾁｪｯｸを外さないと下記ﾌﾟﾘｾｯﾄは映らない
+		if (bModify || model == PCB800099 ) {
+			// PCB800099(RTD2660/2662)以外は水平同期信号幅のﾁｪｯｸを外さないと下記ﾌﾟﾘｾｯﾄは映らない
 			SetParameter<T_Info>(nIdxNo[X68_FZ24K],		0x0F,  640, 448, 245, 524, 5, 5,  944, 469,  64, 10);		// X68000 Fantasy Zone 24KHz		※ModifyFirmwareが通用した場合のみ対応
 			SetParameter<T_Info>(nIdxNo[X68_Druaga],	0x0F,  672, 560, 315, 530, 5, 5, 1104, 595, 108, 31);		// X68000 Druaga 31KHz				※ModifyFirmwareが通用した場合のみ対応
 			SetParameter<T_Info>(nIdxNo[FMT_SRMP2PS],	0x0F,  736, 480, 320, 609, 3, 3,  896, 525, 144,  4);		// TOWNS スーパーリアル麻雀P2&P3	※ModifyFirmwareが通用した場合のみ対応
