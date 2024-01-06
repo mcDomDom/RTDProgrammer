@@ -453,6 +453,11 @@ int			nMode		//!< i	:0=Dump 1=Modify -1=CheckOnly
 			model = PHI_252B9;
 			// プリセットテーブルはP2314Hと同じ
 			break;
+		case 0x32A76:	// Mig9氏 252B9
+			printf("PHILIPS 252B9/11(Mig9)\n");
+			model = PHI_252B9;
+			// プリセットテーブルはP2314Hと同じ
+			break;
 		case 0x5819:	// LH-RD56(V+H)-01 例のiPad9.7型液晶を使用した15KHzモニタ用 2048x1536.bin
 			printf("LH-RD56(V+H) Light Blue Jack iPad 9.7\n");
 			model = LHRD56_IPAD97;
