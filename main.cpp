@@ -388,7 +388,7 @@ static bool ShouldProgramPage(uint8_t* buffer, uint32_t size)
     return false;
 }
 
-bool ProgramFlash(const char *input_file_name, uint32_t chip_size)
+bool ProgramFlash(const char *input_file_name, uint32_t chip_size, enModel model)
 {
 	char buf[1024];
     uint32_t prog_size;
@@ -404,20 +404,28 @@ bool ProgramFlash(const char *input_file_name, uint32_t chip_size)
 	    return false;
     }
 
-    // RTD2556 write protect Add Taka
-    WriteReg(0xF4, 0x29);
-    printf("Reg:0x29 Value=%02X\n", ReadReg(0xF5));
+    // RTD2556 Flash Memory WP Ctrl Add Taka
+	uint8_t reg = 0x29, reg2;
+	if (model == V_M56VDA_IPAD97 || model == V_M56VDA_IPAD97_2) {
+		reg = 0x12;
+	}
+	else if (model == PHI_252B9) {
+		reg = 0x28;
+	}
+	reg2 = reg - 0x10;
+    WriteReg(0xF4, reg);
+    printf("Reg:0x%02X Value=%02X\n", reg, ReadReg(0xF5));
 
-    WriteReg(0xF4, 0x29);
+    WriteReg(0xF4, reg);
     WriteReg(0xF5, 0x01);
 
     WriteReg(0xF4, 0x9F);
     WriteReg(0xF5, 0xFE);
 
-    WriteReg(0xF4, 0x19);
-    printf("Reg:0x19 Value=%02X\n", ReadReg(0xF5));
+    WriteReg(0xF4, reg2);
+    printf("Reg:0x%02X Value=%02X\n", reg2, ReadReg(0xF5));
 
-    WriteReg(0xF4, 0x19);
+    WriteReg(0xF4, reg2);
     WriteReg(0xF5, 0x01);
         
     printf("Erasing...");
@@ -599,8 +607,8 @@ int main(int argc, char* argv[])
 		}
 		printf("Check original firmware %s\n", szCheckFilePath);
 		nRet = RTD2662ModeTableDump(szCheckFilePath, -1);
-		if (nRet != 0) {
-			fprintf(stderr, "original firm %s not exist or invalid\n", szCheckFilePath);
+		if (nRet <= 0) {	// UNKNOWN or error
+			fprintf(stderr, "original firm %s not exist or invalid(nRet=%d)\n", szCheckFilePath, nRet);
 			goto L_RET;
 		}
 
@@ -609,7 +617,7 @@ int main(int argc, char* argv[])
             size = atoi(argv[4])*1024;
         }
         printf("ProgramFlash %s size=%d(kbyte)\n", argv[2], size/1024);
-		bRet = ProgramFlash(argv[2], size);
+		bRet = ProgramFlash(argv[2], size, (enModel)nRet);
     }
     if (bRet) {
         printf("Success!\n");

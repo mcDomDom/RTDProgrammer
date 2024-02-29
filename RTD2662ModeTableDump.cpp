@@ -51,20 +51,6 @@
 	};
 #pragma pack(pop) 
 
-enum enModel
-{
-	UNKNOWN = 0,
-	P2314H,				// DELL P2314H
-	LHRD56_IPAD97,		// 青ジャック基板にiPad 9.7型液晶を使用した15KHzモニタ用→なんか良い愛称ないんでしょうか
-	LHRD56_1366x768,	// 同 1366x768液晶用ファーム
-	M_RT2556_FHD,		// 黒ジャック基板にgithubで見つけたファームウェア適用
-	PHI_252B9,			// PHILIPS 252B9/11
-	PCB800099,			// RTD2662使用基板
-	RTD2668,
-	V_M56VDA_IPAD97,	// V.M56VDA iPad基板 okaz氏情報提供ありがとうございます
-	JG2555TC_IPAD97,	// JG2555TC iPad基板 Thanks Newman
-};
-
 enum enIndex
 {
 	X68_15K_I,		// X68000 15KHz Interlace
@@ -350,7 +336,7 @@ bool ModifyFirmware(enModel model)
 		buf[nPosVHeightCheck2+nOfsVHeightCheck] = 0xC7;		// VTotalHeightの下限を240->200に緩和
 		printf("Disalbe vheight chekc2 buf[%08X]=%X\n", nPosVHeightCheck2+nOfsVHeightCheck, buf[nPosVHeightCheck2+nOfsVHeightCheck]);
 	}
-	if (model == LHRD56_IPAD97 || model == V_M56VDA_IPAD97) {
+	if (model == LHRD56_IPAD97 || model == V_M56VDA_IPAD97 || model == V_M56VDA_IPAD97_2|| model == LHRD56_IPAD97_POO ) {
 		buf[nPosDClkMin+5] = 0x02;		// DClkMinを202000->136464に(50Hzだと170500くらいになるので)
 		printf("Change dcl min buf[%08X]=%X\n", nPosDClkMin+5, buf[nPosDClkMin+5]);
 	}
@@ -381,7 +367,7 @@ int			nMode		//!< i	:0=Dump 1=Modify -1=CheckOnly
 	fp = fopen(szFilePath, "rb");
 	if (!fp) {
 		fprintf(stderr, "can't open %s\n", szFilePath);
-		ret = 1;
+		ret = -1;
 		goto L_RET;
 	}
 
@@ -390,14 +376,14 @@ int			nMode		//!< i	:0=Dump 1=Modify -1=CheckOnly
 	buf = (BYTE *)malloc(nFileLen);
 	if (!buf) {
 		fprintf(stderr, "can't alloc memory %d\n", nFileLen);
-		ret = 3;
+		ret = -3;
 		goto L_CLOSE_CSV;
 	}
 
 	ret = fread(buf, nFileLen, 1, fp);
 	if (!ret) {
 		fprintf(stderr, "can't read %s\n", szFilePath);
-		ret = 4;
+		ret = -4;
 		goto L_FREE;
 	}
 
@@ -418,7 +404,7 @@ int			nMode		//!< i	:0=Dump 1=Modify -1=CheckOnly
 		nModeTableStart = FindModeTable<T_Info_23>(nFileLen, nModeTableCount);
 		if (nModeTableStart < 0) {
 			fprintf(stderr, "can't find mode table\n");
-			ret = 5;
+			ret = -5;
 			goto L_FREE;
 		}
 		model = RTD2668;
@@ -492,6 +478,23 @@ int			nMode		//!< i	:0=Dump 1=Modify -1=CheckOnly
 			nIdxNo[M72_RTYPE] = 27;		// 27:848x480 35.0KHz/70Hzs
 			nIdxNo[MVS] = 37;			// 37:1152x864 53.7KHz/60Hz
 			nIdxNo[GEN_15K_P] = 86;		// 86:1440x240 15.7KHz/60Hz
+			break;
+		case 0x221A3:	// taobao 広州四維液晶貿易有限公司 V.M56VDA iPad
+			printf("V.M56VDA Black Jack iPad 9.7(taobao)\n");
+			model = V_M56VDA_IPAD97_2;
+			nIdxNo[X68_Dash] = 15;		// 15:720x480 29.8KHz/59.9Hz
+			nIdxNo[X68_FZ24K] = 17;		// 17:720x576 35.8KHz/60Hz
+			nIdxNo[X68_Druaga] = 18;	// 18:720x576 45.5KHz/75.6Hz
+			nIdxNo[FMT_Raiden] = 25;	// 25:832x624 49.7KHz/74.5Hz
+			nIdxNo[FMT_SRMP2PS] = 26;	// 26:848x480 31.0KHz/60Hz
+			nIdxNo[M72_RTYPE] = 27;		// 27:848x480 35.0KHz/70Hzs
+			nIdxNo[MVS] = 37;			// 37:1152x864 53.7KHz/60Hz
+			nIdxNo[GEN_15K_P] = 86;		// 86:1440x240 15.7KHz/60Hz
+			break;
+		case 0x22386:
+			printf("LH-RD56(V+H) Light Blue Jack iPad 9.7(poo)\n");
+			model = LHRD56_IPAD97_POO;
+			// プリセットテーブルはP2314Hとほぼ同じ
 			break;
 		case 0x32000:	// JG2555TC
 			printf("JG2555TC Balck Jack iPad 9.7\n");
@@ -571,7 +574,7 @@ int			nMode		//!< i	:0=Dump 1=Modify -1=CheckOnly
 			SetParameter<T_Info>(nIdxNo[FMT_SRMP2PS],	0x0F,  736, 480, 320, 609, 3, 3,  896, 525, 144,  4);		// TOWNS スーパーリアル麻雀P2&P3	※ModifyFirmwareが通用した場合のみ対応
 			//縦像度240未満の定義はVTotalHeight下限ﾁｪｯｸを除去しないと範囲外ｴﾗｰ表示で映らない
 			SetParameter<T_Info>(nIdxNo[GEN_15K_P], 0x00, 0, 0, 0, 0, 5, 5, 0, 0, 0, 0);						// 元からある15.7KHz/Progressive/1440x240pの許容誤差を10->5に変更
-			if (model == LHRD56_IPAD97 || model == V_M56VDA_IPAD97) {	// VTotal 232以下ﾀﾞﾒっぽい
+			if (model == LHRD56_IPAD97) {	// VTotal 232以下ﾀﾞﾒっぽい
 				//buf[0x3E040] = 0xE4;	// DEBUG MODE ENABLE
 				//buf[0x4A950] = 0xC3;	// D3->C3 UserInterfaceGetDclkNoSupportStatusを常にreturn FALSEに
 				SetParameter<T_Info>(nIdxNo[MVS], 0x0F, 576, 232, 157, 591, 3, 3, 768, 263, 120, 24);				// MVS基板 15.7KHz/59.1Hz KAPPY.さん提供
@@ -604,7 +607,7 @@ int			nMode		//!< i	:0=Dump 1=Modify -1=CheckOnly
 		fpCsv = fopen(szFilePath, "wt");
 		if (!fpCsv) {
 			fprintf(stderr, "can't open %s\n", szFilePath);
-			ret = 2;
+			ret = -2;
 			goto L_CLOSE;
 		}
 		nOffset = nModeTableStart;
@@ -632,7 +635,7 @@ int			nMode		//!< i	:0=Dump 1=Modify -1=CheckOnly
 		}
 	}
 
-	ret = (model == UNKNOWN) ? -1 : 0;
+	ret = model;
 
 L_FREE:
 	free(buf);
