@@ -64,6 +64,7 @@ enum enIndex
 	X68_Druaga,		// X68000 Druaga 31KHz
 	FMT_Raiden,		// FM TOWNS 雷電伝説 31KHz
 	FMT_SRMP2PS,	// FM TOWNS スーパーリアル麻雀P2&P3 31KHz
+	FMT_LINUX,		// FM TOWNS Linuxコンソール 31KHz
 	M72_RTYPE,		// IREM M72 R-TYPE 15KHz
 	MVS,			// NEO GEO MVS 15KHZ
 	GEN_15K_P,		// Generic 15KHz Progressive
@@ -425,6 +426,7 @@ int			nMode		//!< i	:0=Dump 1=Modify -1=CheckOnly
 	nIdxNo[FMT_SRMP2PS] = 25;	// 25:848x480 31.0KHz/60Hz
 	nIdxNo[M72_RTYPE] = 26;		// 26:848x480 35.0KHz/70Hz
 	nIdxNo[MVS] = 27;			// 27:848x480 36.0KHz/72Hz
+	nIdxNo[FMT_LINUX] = 28;		// 28:848x480 37.6KHz/75Hz
 	nIdxNo[GEN_15K_P] = 87;		// 87:1440x240 15.7KHz/60Hz
 
 	if (model == UNKNOWN) {
@@ -454,6 +456,7 @@ int			nMode		//!< i	:0=Dump 1=Modify -1=CheckOnly
 			nIdxNo[FMT_SRMP2PS] = 26;	// 26:848x480 31.0KHz/60Hz
 			nIdxNo[M72_RTYPE] = 27;		// 27:848x480 35.0KHz/70Hzs
 			nIdxNo[MVS] = 37;			// 37:1152x864 53.7KHz/60Hz
+			nIdxNo[FMT_LINUX] = 38;		// 38:848x480 37.6KHz/75Hz
 			nIdxNo[GEN_15K_P] = 86;		// 86:1440x240 15.7KHz/60Hz
 			break;
 		case 0xD97E:	// 同上 1366x768 UIは黒ジャックと同じ？
@@ -477,6 +480,7 @@ int			nMode		//!< i	:0=Dump 1=Modify -1=CheckOnly
 			nIdxNo[FMT_SRMP2PS] = 26;	// 26:848x480 31.0KHz/60Hz
 			nIdxNo[M72_RTYPE] = 27;		// 27:848x480 35.0KHz/70Hzs
 			nIdxNo[MVS] = 37;			// 37:1152x864 53.7KHz/60Hz
+			nIdxNo[FMT_LINUX] = 38;		// 38:848x480 37.6KHz/75Hz
 			nIdxNo[GEN_15K_P] = 86;		// 86:1440x240 15.7KHz/60Hz
 			break;
 		case 0x221A3:	// taobao 広州四維液晶貿易有限公司 V.M56VDA iPad
@@ -489,6 +493,7 @@ int			nMode		//!< i	:0=Dump 1=Modify -1=CheckOnly
 			nIdxNo[FMT_SRMP2PS] = 26;	// 26:848x480 31.0KHz/60Hz
 			nIdxNo[M72_RTYPE] = 27;		// 27:848x480 35.0KHz/70Hzs
 			nIdxNo[MVS] = 37;			// 37:1152x864 53.7KHz/60Hz
+			nIdxNo[FMT_LINUX] = 38;		// 38:848x480 37.6KHz/75Hz
 			nIdxNo[GEN_15K_P] = 86;		// 86:1440x240 15.7KHz/60Hz
 			break;
 		case 0x22386:
@@ -567,6 +572,7 @@ int			nMode		//!< i	:0=Dump 1=Modify -1=CheckOnly
 		SetParameter<T_Info>(nIdxNo[X68_Dash],		0x0F,  768, 536, 315, 543, 5, 5, 1176, 580, 308, 38);		// X68000 ダッシュ野郎
 		SetParameter<T_Info>(nIdxNo[FMT_Raiden],	0x0F,  768, 512, 323, 603, 3, 3, 1104, 536, 240, 19);		// TOWNS 雷電伝説
 		SetParameter<T_Info>(nIdxNo[M72_RTYPE],		0x0F,  768, 256, 157, 550, 5, 5, 1024, 284, 156, 24);		// R-TYPE基板 15.7KHz/55Hz KAPPY.さん提供
+		SetParameter<T_Info>(nIdxNo[FMT_LINUX],		0x0F,  768, 512, 311, 579, 3, 3,  920, 538, 138, 26);		// TOWNS LINUXコンソール プーさん提供
 		if (bModify || model == PCB800099 ) {
 			// PCB800099(RTD2660/2662)以外は水平同期信号幅のﾁｪｯｸを外さないと下記ﾌﾟﾘｾｯﾄは映らない
 			SetParameter<T_Info>(nIdxNo[X68_FZ24K],		0x0F,  640, 448, 245, 524, 5, 5,  944, 469,  64, 10);		// X68000 Fantasy Zone 24KHz		※ModifyFirmwareが通用した場合のみ対応
