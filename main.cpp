@@ -605,11 +605,17 @@ int main(int argc, char* argv[])
 			*p = '\0';
 			strcat(szCheckFilePath, szExt);
 		}
-		printf("Check original firmware %s\n", szCheckFilePath);
-		nRet = RTD2662ModeTableDump(szCheckFilePath, -1);
-		if (nRet <= 0) {	// UNKNOWN or error
-			fprintf(stderr, "original firm %s not exist or invalid(nRet=%d)\n", szCheckFilePath, nRet);
-			goto L_RET;
+		p = strstr(argv[2], "_force");
+		if (p) {
+			printf("Force write firmware %s\n", argv[2]);
+		}
+		else {
+			printf("Check original firmware %s\n", szCheckFilePath);
+			nRet = RTD2662ModeTableDump(szCheckFilePath, -1);
+			if (nRet <= 0) {	// UNKNOWN or error
+				fprintf(stderr, "original firm %s not exist or invalid(nRet=%d)\n", szCheckFilePath, nRet);
+				goto L_RET;
+			}
 		}
 
         int size = chip->size_kb * 1024;
