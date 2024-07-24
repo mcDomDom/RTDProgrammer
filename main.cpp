@@ -41,6 +41,7 @@ static const FlashDesc FlashDevices[] =
     {"M25P16", 0x202015, 2 * 1024,       256, 64},
     {"M25P32", 0x202016, 4 * 1024,       256, 64},
     {"M25P64", 0x202017, 8 * 1024,       256, 64},
+    {"M45PE40", 0x204013,     512,       256, 64}, 
     // Manufacturer: Windbond
     {"W25X10", 0xEF3011,      128,       256, 64},
     {"W25X20", 0xEF3012,      256,       256, 64},
@@ -245,6 +246,7 @@ void SetupChipCommands(uint32_t jedec_id)
     case 0xA1:
     case 0x37:
     case 0x85:
+	case 0x20:
         // These are the codes for Winbond
         WriteReg(0x62, 0x06); // Flash Write enable op code
         WriteReg(0x63, 0x50); // Flash Write register op code
