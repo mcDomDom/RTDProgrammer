@@ -124,9 +124,14 @@ L_RETRY:
 		short nHeight = ntohs(pInfo1->height);
 		short nHStart = ntohs(pInfo1->hstart);
 		short nVStart = ntohs(pInfo1->vstart);
+		short nHFreq = ntohs(pInfo1->hfreq);
+		short nVFreq = ntohs(pInfo1->vfreq);
 		if (512 <= nWidth && nWidth <= 4096 &&
 			200 <= nHeight && nHeight <= 2048 &&
 			nHStart < nWidth && nVStart < nHeight && 
+			150 < nHFreq && nHFreq < 1500 && 
+			200 < nVFreq && nVFreq < 1500 && 
+			nWidth%2 == 0 && nVStart < 100 &&
 			5 <= pInfo1->htolerance && pInfo1->htolerance <= 12 &&
 			5 <= pInfo1->vtolerance && pInfo1->vtolerance <= 12 &&
 			5 <= pInfo2->htolerance && pInfo2->htolerance <= 12 &&
@@ -414,7 +419,7 @@ int			nMode		//!< i	:0=Dump 1=Modify -1=CheckOnly
 	// P2314Hの画面ﾓｰﾄﾞと使用ﾌﾟﾘｾｯﾄﾃｰﾌﾞﾙNoの紐づけ 
 	memset(nIdxNo, -1, sizeof(nIdxNo));
 	nIdxNo[X68_15K_I] = 0;		//  0:640x350 31.5KHz/70Hz
-	nIdxNo[X68_15K_P] = 139;//1;		//  1;640x350 31.5KHz/70Hz
+	nIdxNo[X68_15K_P] = 1;		//  1;640x350 31.5KHz/70Hz
 	nIdxNo[X68_24K_I] = 4;		//  4:720x400 31.5KHz/70Hz
 	nIdxNo[X68_24K_P] = 5;		//  5:640x400 31.5KHz/70Hz
 	nIdxNo[X68_31K] = 6;		//  6:720x400 38.0KHz/85Hz
@@ -539,6 +544,11 @@ int			nMode		//!< i	:0=Dump 1=Modify -1=CheckOnly
 			nIdxNo[FMT_SRMP2PS] = 29;	// 1152x864
 			nIdxNo[M72_RTYPE] = 30;		// 1152x864
 			nIdxNo[MVS] = 31;			// 1152x864
+			break;
+		case 0x52A4A:	// Acer EK271Ebmix KAPPY.氏
+			printf("EK271Ebmix\n");
+			model = EK271Ebmix;
+			// プリセットテーブルはP2314Hとほぼ同じ
 			break;
 		}
 	}
