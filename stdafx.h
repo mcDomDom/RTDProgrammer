@@ -37,6 +37,7 @@ enum enModel
 	JG2555TC_IPAD97,	// JG2555TC iPad基板 Thanks Newman
 	LHRD56_IPAD97_POO,	// 青ジャック基板にiPad 9.7型液晶を使用した15KHzモニタ用(別版) プー氏情報提供ありがとうございます
 	EK271Ebmix,			// Acer EK271Ebmix KAPPY.氏情報提供ありがとうございます
+	EK241YEbmix			// Acer EK241YEbmix KAPPY.氏情報提供ありがとうございます
 };
 
 

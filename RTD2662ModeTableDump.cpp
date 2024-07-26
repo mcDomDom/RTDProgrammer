@@ -19,7 +19,7 @@
 
 #pragma pack(push, 1) 
 	struct T_Info {		// 19Byte/Rec
-		BYTE	polarity;	// 極性フラグ 0x20:SDTV? 0x40:HDTV?  0x10:Interlace?
+		BYTE	polarity;	// Bit0-3:Polarity Flag? Bit6:Interlace?
 		WORD	width;
 		WORD	height;
 		WORD	hfreq;
@@ -548,6 +548,11 @@ int			nMode		//!< i	:0=Dump 1=Modify -1=CheckOnly
 		case 0x52A4A:	// Acer EK271Ebmix KAPPY.氏
 			printf("EK271Ebmix\n");
 			model = EK271Ebmix;
+			// プリセットテーブルはP2314Hとほぼ同じ
+			break;
+		case 0x42A55:	// Acer EK241YEbmix KAPPY.氏
+			printf("EK241YEbmix\n");
+			model = EK241YEbmix;
 			// プリセットテーブルはP2314Hとほぼ同じ
 			break;
 		}
