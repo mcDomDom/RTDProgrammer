@@ -421,7 +421,7 @@ void ModifyAcerEK2xxYAspectFunction(enModel model)
 		nOffset = 0x2f225;
 	}
 	else if (model == EK271Ebmix) {
-		nOffset = 0x2f225;
+		nOffset = 0x2f486;
 	}
 	else {
 		printf("Invlid Model\n");
