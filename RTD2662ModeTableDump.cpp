@@ -413,9 +413,9 @@ void SearchAspect()
 }
 #endif
 
+// Force 4:3(640x480)
 void ModifyAcerEK2xxYAspectFunction(enModel model)
 {
-	// Height < 350 Force 4:3(640x480)
 	int nOffset;
 	if (model == EK241YEbmix) {
 		nOffset = 0x2f225;
@@ -423,102 +423,142 @@ void ModifyAcerEK2xxYAspectFunction(enModel model)
 	else if (model == EK271Ebmix) {
 		nOffset = 0x2f486;
 	}
+	else if (model == QG221QHbmiix) {
+		nOffset = 0x2f156;
+	}
+	else {
+		printf("Invlid Model\n");
+		return;
+	}
+	// Aspect H 640
+	buf[nOffset++] = 0x74;	buf[nOffset++] = 0x02;	// MOV A, #0x02
+	buf[nOffset++] = 0x75;	buf[nOffset++] = 0xF0;	buf[nOffset++] = 0x80;	// MOV B, #0x80
+	// LCALL ISTPTR
+	if (model == EK241YEbmix) {
+		buf[nOffset++] = 0x12;	buf[nOffset++] = 0x17;	buf[nOffset++] = 0xBA;
+	}
+	else if (model == EK271Ebmix) {
+		buf[nOffset++] = 0x12;	buf[nOffset++] = 0x17;	buf[nOffset++] = 0x66;
+	}
+	else if (model == QG221QHbmiix) {
+		buf[nOffset++] = 0x12;	buf[nOffset++] = 0x18;	buf[nOffset++] = 0x51;
+	}
+	// Aspect V 480
+	buf[nOffset++] = 0x74;	buf[nOffset++] = 0xE0;	// MOV A, #0x40
+	buf[nOffset++] = 0xFF;							// MOV R7, A
+	buf[nOffset++] = 0x74;	buf[nOffset++] = 0x01;	// MOV A, #0x01
+	buf[nOffset++] = 0xF9;							// MOV R1, A
+	// Restore param2 R2/R3
+	if (model == EK241YEbmix) {
+		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE0;	buf[nOffset++] = 0x88;	// MOV DPTR, #0xE088
+		buf[nOffset++] = 0x12;	buf[nOffset++] = 0xE1;	buf[nOffset++] = 0x1B;	// LCALL restore R2/R3
+	}
+	else if (model == EK271Ebmix) {
+		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE0;	buf[nOffset++] = 0x88;	// MOV DPTR, #0xE088
+		buf[nOffset++] = 0x12;	buf[nOffset++] = 0xE7;	buf[nOffset++] = 0xC1;	// LCALL restore R2/R3
+	}
+	else if (model == QG221QHbmiix) {
+		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE3;	buf[nOffset++] = 0x08;	// MOV DPTR, #0xE308
+		buf[nOffset++] = 0x12;	buf[nOffset++] = 0xE9;	buf[nOffset++] = 0x88;	// LCALL restore R2/R3
+	}
+	buf[nOffset++] = 0xC9;							// XCH A,R1
+	buf[nOffset++] = 0x8F;	buf[nOffset++] = 0xF0;	// MOV B,R7
+	// LCALL ISTPTR
+	if (model == EK241YEbmix) {
+		buf[nOffset++] = 0x12;	buf[nOffset++] = 0x17;	buf[nOffset++] = 0xBA;
+	}
+	else if (model == EK271Ebmix) {
+		buf[nOffset++] = 0x12;	buf[nOffset++] = 0x17;	buf[nOffset++] = 0x66;
+	}
+	else if (model == QG221QHbmiix) {
+		buf[nOffset++] = 0x12;	buf[nOffset++] = 0x18;	buf[nOffset++] = 0x51;
+	}
+	buf[nOffset++] = 0x22;	// RET
+
+
+
+	// Ignore Aspect Change Disable
+	if (model == EK241YEbmix) {
+		buf[0x5cbe9] = 0xD2;	// 640x400 OK
+		buf[0x5cc25] = 0xD2;
+	}
+	else if (model == EK271Ebmix) {
+		buf[0x4b078] = 0xD2;	// 640x400 OK
+		buf[0x4b0b5] = 0xD2;
+	}
+	else if (model == QG221QHbmiix) {
+		buf[0x6a191] = 0xD2;	// 640x400 OK
+		buf[0x6a1d2] = 0xD2;
+	}
+
+	printf("Aspect Function Force Enable And Change 4:3 Mode\n");
+}
+
+/**
+		同一周波数&VTotalのインタレースとプログレッシブを別々のプリセットで識別する試み
+		->同一周波数&VTotalで連続してインタレースとプログレッシブが切り替わってもコントローラが認識してくれない
+		  電源を入れなおすと正しく認識するが、使いどころ微妙
+*/
+void ModifyAcerEK2xxYCompareInterlace(enModel model)
+{
+	int nOffset;
+	if (model == EK241YEbmix) {
+		nOffset = 0x4a304;
+	}
+	else if (model == EK271Ebmix) {
+		nOffset = 0x5c832;
+	}
 	else {
 		printf("Invlid Model\n");
 		return;
 	}
 
-	// Set HWidth to HAspect
-	buf[nOffset++] = 0xE9;
-	buf[nOffset++] = 0xFC;
-	buf[nOffset++] = 0xEA;
-	buf[nOffset++] = 0xFD;
-	buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE3;	buf[nOffset++] = 0xD1;
-	buf[nOffset++] = 0xE0;
-	buf[nOffset++] = 0xFF;
-	buf[nOffset++] = 0xA3;
-	buf[nOffset++] = 0xE0;
-	buf[nOffset++] = 0xCF;
-	buf[nOffset++] = 0x8F;	buf[nOffset++] = 0xF0;
-	// ISTPTR
+	buf[nOffset++]=0x90; buf[nOffset++]=0xe0; buf[nOffset++]=0x93;
+	buf[nOffset++]=0xef;
+	buf[nOffset++]=0xf0;
+	buf[nOffset++]=0x75; buf[nOffset++]=0xf0; buf[nOffset++]=0x13;
+	buf[nOffset++]=0xed;
+	buf[nOffset++]=0xa4;
+	buf[nOffset++]=0x24; buf[nOffset++]=0x05;
+	buf[nOffset++]=0xf5; buf[nOffset++]=0x82;
+	buf[nOffset++]=0xe5; buf[nOffset++]=0xf0;
+	buf[nOffset++]=0x34; buf[nOffset++]=0x26;
+	buf[nOffset++]=0xf5; buf[nOffset++]=0x83;
+	buf[nOffset++]=0xe4;
+	buf[nOffset++]=0x93;
+	buf[nOffset++]=0x54; buf[nOffset++]=0x40;
+	buf[nOffset++]=0xc4;
+	buf[nOffset++]=0x13;
+	buf[nOffset++]=0x54; buf[nOffset++]=0x07;
+	buf[nOffset++]=0x24; buf[nOffset++]=0xff;
+	buf[nOffset++]=0x92; buf[nOffset++]=0xf7;
+	buf[nOffset++]=0x90; buf[nOffset++]=0xe3; buf[nOffset++]=0xcc;	//
+	buf[nOffset++]=0xe0;
+	buf[nOffset++]=0x13;
+	buf[nOffset++]=0x13;
+	buf[nOffset++]=0x54; buf[nOffset++]=0x3f;
+	buf[nOffset++]=0x13;
+	buf[nOffset++]=0x30; buf[nOffset++]=0xf7; buf[nOffset++]=0x01;
+	buf[nOffset++]=0xb3;
+	buf[nOffset++]=0x40; buf[nOffset++]=0x06;
+	buf[nOffset++]=0xed;
 	if (model == EK241YEbmix) {
-		buf[nOffset++] = 0x12;	buf[nOffset++] = 0x17;	buf[nOffset++] = 0xBA;
+		buf[nOffset++]=0x12; buf[nOffset++]=0x16; buf[nOffset++]=0x23;	// CSTPTR
 	}
 	else if (model == EK271Ebmix) {
-		buf[nOffset++] = 0x12;	buf[nOffset++] = 0x17;	buf[nOffset++] = 0x66;
+		buf[nOffset++]=0x12; buf[nOffset++]=0x15; buf[nOffset++]=0xCF;	// CSTPTR
 	}
-	// Set VHeight to R1/R7
-	buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE3;	buf[nOffset++] = 0xDD;
-	buf[nOffset++] = 0xE0;
-	buf[nOffset++] = 0xF9;
-	buf[nOffset++] = 0xA3;
-	buf[nOffset++] = 0xE0;
-	buf[nOffset++] = 0xFF;
-	// Check Interlace?
-	buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE3;	buf[nOffset++] = 0x65;
-	buf[nOffset++] = 0xE0;
-	if (model == EK241YEbmix) {
-		buf[nOffset++] = 0x12;	buf[nOffset++] = 0xE0;	buf[nOffset++] = 0xF5;
-	}
-	else if (model == EK271Ebmix) {
-		buf[nOffset++] = 0x12;	buf[nOffset++] = 0xE7;	buf[nOffset++] = 0x9B;
-	}
-	buf[nOffset++] = 0x70;	buf[nOffset++] = 0x07;
+	buf[nOffset++]=0xd3;
+	buf[nOffset++]=0x22;
+	buf[nOffset++]=0xc3;
+	buf[nOffset++]=0x22;
 
-	// x2 VHeight
-	buf[nOffset++] = 0xEF;
-	buf[nOffset++] = 0x25;	buf[nOffset++] = 0xE0;
-	buf[nOffset++] = 0xFF;
-	buf[nOffset++] = 0xE9;
-	buf[nOffset++] = 0x33;
-	buf[nOffset++] = 0xF9;
+	// CSTPTR
+	// BB 01 06 89 82 8A 83 F0 22 50 02 F7 22 BB FE 01 F3 22
 
-	// Check VHeight < 350
-	buf[nOffset++] = 0xC3;
-	buf[nOffset++] = 0xEF;
-	buf[nOffset++] = 0x94;	buf[nOffset++] = 0x5A;
-	buf[nOffset++] = 0xE9;
-	buf[nOffset++] = 0x94;	buf[nOffset++] = 0x01;
-#if 0
-	// Use Original Aspect Ratio
-	buf[nOffset++] = 0x50;	buf[nOffset++] = 0x15;
-#else
-	// Force 4:3
-	buf[nOffset++] = 0x00;	buf[nOffset++] = 0x00;
-#endif
-	// Set Aspect 640x480(4:3)
-	buf[nOffset++] = 0xEC;
-	buf[nOffset++] = 0xF9;
-	buf[nOffset++] = 0xED;
-	buf[nOffset++] = 0xFA;
-	buf[nOffset++] = 0x74;	buf[nOffset++] = 0x02;
-	buf[nOffset++] = 0x75;	buf[nOffset++] = 0xF0;	buf[nOffset++] = 0x80;
-	// ISTPTR
-	if (model == EK241YEbmix) {
-		buf[nOffset++] = 0x12;	buf[nOffset++] = 0x17;	buf[nOffset++] = 0xBA;
-	}
-	else if (model == EK271Ebmix) {
-		buf[nOffset++] = 0x12;	buf[nOffset++] = 0x17;	buf[nOffset++] = 0x66;
-	}
-	buf[nOffset++] = 0x74;	buf[nOffset++] = 0xE0;
-	buf[nOffset++] = 0xFF;
-	buf[nOffset++] = 0x74;	buf[nOffset++] = 0x01;
-	buf[nOffset++] = 0xF9;
-
-	buf[nOffset++] = 0x00;
-	buf[nOffset++] = 0x00;
-	buf[nOffset++] = 0x00;
-
-	// Force Aspect Change OK
-	if (model == EK241YEbmix) {
-		buf[0x5cc25] = 0xD2;
-	}
-	else if (model == EK271Ebmix) {
-		buf[0x4b0b5] = 0xD2;
-	}
-
-	printf("Aspect Function Force Enable And Change 4:3 Mode\n");
+	printf("Compare Interlace Flag Enable\n");
 }
+
 
 int RTD2662ModeTableDump(
 const char	*szPath,	//!< i	:
@@ -713,21 +753,27 @@ int			nMode		//!< i	:0=Dump 1=Modify -1=CheckOnly
 			nIdxNo[MVS] = 31;			// 1152x864
 			break;
 		case 0x52A4A:	// Acer EK271Ebmix KAPPY.氏
-			printf("EK271Ebmix\n");
+			printf("Acer EK271Ebmix\n");
 			model = EK271Ebmix;
 			// プリセットテーブルはP2314Hとほぼ同じ
 			ModifyAcerEK2xxYAspectFunction(model);
 			break;
 		case 0x42A55:	// Acer EK241YEbmix KAPPY.氏
-			printf("EK241YEbmix\n");
-			model = EK271Ebmix;
+			printf("Acer EK241YEbmix\n");
+			model = EK241YEbmix;
+			// プリセットテーブルはP2314Hとほぼ同じ
+			ModifyAcerEK2xxYAspectFunction(model);
+			break;
+		case 0x52A56:	// Acer QG221QHbmiix KAPPY.氏
+			printf("Acer QG221QHbmiix\n");
+			model = QG221QHbmiix;
 			// プリセットテーブルはP2314Hとほぼ同じ
 			ModifyAcerEK2xxYAspectFunction(model);
 			break;
 		}
 	}
 	if (model == UNKNOWN) {
-		fprintf(stderr, "unknown firmware\n");
+		fprintf(stderr, "unknown firmware nModeTableStart=%X\n", nModeTableStart);
 	}
 	
 	if (nMode == 1 && model != UNKNOWN && model != RTD2668) {
@@ -747,9 +793,9 @@ int			nMode		//!< i	:0=Dump 1=Modify -1=CheckOnly
 #endif
 
 		//											Pol   Wid   Hei  HFrq VFrq HT VT HTot  VTot HSB  VSB
-  		//SetParameter<T_Info>(nIdxNo[X68_15K_I],		0x1F,  512, 480, 159, 615, 5, 5,  608, 521,  78, 24);		// X68000  512x512 15KHz(interlace) -> 標準の480iﾌﾟﾘｾｯﾄが使用されるため無効
-		SetParameter<T_Info>(nIdxNo[X68_15K_P],		0x0F, 1472, 240, 159, 615, 5, 5, 1716, 262, 238, 20);		// X68000  512x240 15KHz
-		//SetParameter<T_Info>(nIdxNo[X68_24K_I],		0x1F, 1024, 848, 246, 532, 5, 5, 1408, 931, 282, 46);		// X68000 1024x848 24KHz(interlace) 偶数・奇数ライン逆？
+  		//SetParameter<T_Info>(nIdxNo[X68_15K_I],		0x0F,  512, 480, 159, 615, 5, 5,  608, 521,  78, 24);		// X68000  512x512 15KHz(interlace)
+		SetParameter<T_Info>(nIdxNo[X68_15K_P],		0x0F,  512, 240, 159, 615, 5, 5,  608, 262,  78, 20);		// X68000  512x240 15KHz
+		//SetParameter<T_Info>(nIdxNo[X68_24K_I],		0x0F, 1024, 848, 246, 532, 5, 5, 1408, 931, 282, 46);		// X68000 1024x848 24KHz(interlace) 偶数・奇数ライン逆？
 		SetParameter<T_Info>(nIdxNo[X68_24K_P],		0x0F, 1024, 424, 246, 532, 5, 5, 1408, 465, 282, 23);		// X68000 1024x424 24KHz
 		SetParameter<T_Info>(nIdxNo[X68_31K],		0x0F,  768, 512, 314, 554, 5, 5, 1104, 568, 261, 32);		// X68000  768x512 31KHz
 		SetParameter<T_Info>(nIdxNo[X68_Memtest],	0x0F,  768, 512, 340, 554, 5, 5, 1130, 613, 320, 41);		// X68000 memtest 31KHz

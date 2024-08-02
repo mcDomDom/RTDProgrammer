@@ -48,6 +48,8 @@ static const FlashDesc FlashDevices[] =
     {"W25X40", 0xEF3013,      512,       256, 64},
     {"W25X80", 0xEF3014, 1 * 1024,       256, 64},
     {"W25Q80", 0xEF4014, 1 * 1024,       256, 64},
+    // Manufacturer: GigaDevice
+    {"GD25D40C", 0xC84013,     512,      256, 64}, 
     {"GD25Q80", 0xC84014, 1 * 1024,      256, 64}, 
     // Manufacturer: Macronix
     {"MX25L512", 0xC22010,       64,       256, 64},
@@ -170,6 +172,9 @@ void PrintManufacturer(uint32_t id)
     {
     case 0x20:
         printf("ST");
+        break;
+	case 0xc8:
+        printf("GigaDevice");
         break;
     case 0xef:
         printf("Winbond");
