@@ -38,7 +38,8 @@ enum enModel
 	LHRD56_IPAD97_POO,	// 青ジャック基板にiPad 9.7型液晶を使用した15KHzモニタ用(別版) プー氏情報提供ありがとうございます
 	EK271Ebmix,			// Acer EK271Ebmix KAPPY.氏情報提供ありがとうございます
 	EK241YEbmix,		// Acer EK241YEbmix KAPPY.氏情報提供ありがとうございます
-	QG221QHbmiix		// Acer QG221QHbmiix KAPPY.氏情報提供ありがとうございます
+	QG221QHbmiix,		// Acer QG221QHbmiix KAPPY.氏情報提供ありがとうございます
+	C24M2020DJP,		// Amazon C24M2020DJP えくしび氏情報提供ありがとうございます
 };
 
 
