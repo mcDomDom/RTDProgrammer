@@ -49,12 +49,10 @@ static const FlashDesc FlashDevices[] =
     {"W25X80", 0xEF3014, 1 * 1024,       256, 64},
     {"W25Q80", 0xEF4014, 1 * 1024,       256, 64},
     {"W25Q80", 0xEF4014, 1 * 1024,       256, 64},
-
-    {"?25Q80", 0x514014, 1 * 1024,       256, 64},
-
 	// Manufacturer: GigaDevice
     {"GD25D40C", 0xC84013,     512,      256, 64}, 
     {"GD25Q80", 0xC84014, 1 * 1024,      256, 64}, 
+    {"MD25D80", 0x514014, 1 * 1024,       256, 64},
     // Manufacturer: Macronix
     {"MX25L512", 0xC22010,       64,       256, 64},
     {"25D40",    0xC22013,      512,       256, 64},
@@ -178,6 +176,7 @@ void PrintManufacturer(uint32_t id)
         printf("ST");
         break;
 	case 0xc8:
+    case 0x51:
         printf("GigaDevice");
         break;
     case 0xef:
@@ -200,9 +199,6 @@ void PrintManufacturer(uint32_t id)
         break; 
     case 0x85:
        printf("Puya");
-        break; 
-    case 0x51:
-        printf("??");
         break; 
     default:
         printf("Unknown");
