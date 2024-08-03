@@ -423,7 +423,7 @@ bool ProgramFlash(const char *input_file_name, uint32_t chip_size, enModel model
 	else if (model == PHI_252B9) {
 		reg = 0x28;
 	}
-	else if (model == EK241YEbmix || model == EK271Ebmix) {
+	else if (model == EK241YEbmix || model == EK271Ebmix  || model == C24M2020DJP) {
 		reg = 0x1D;
 	}
 	reg2 = reg - 0x10;
@@ -560,7 +560,7 @@ int main(int argc, char* argv[])
     }
 
     InitI2C(i2c);
-    printf("Ready\n");
+    printf("Ready use I2C-%d\n", port);
     SetI2CAddr(port);
 
     const FlashDesc* chip;
