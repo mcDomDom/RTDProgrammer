@@ -255,6 +255,7 @@ void SetupChipCommands(uint32_t jedec_id)
     case 0x37:
     case 0x85:
 	case 0x20:
+	case 0x51:
         // These are the codes for Winbond
         WriteReg(0x62, 0x06); // Flash Write enable op code
         WriteReg(0x63, 0x50); // Flash Write register op code
