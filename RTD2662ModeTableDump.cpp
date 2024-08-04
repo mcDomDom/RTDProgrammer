@@ -316,6 +316,10 @@ bool ModifyFirmware(enModel model)
 		}
 		nOfsVHeightCheck = 4;
 	}
+	else if (model == JG2555TC_IPAD97) {
+		printf("Skip VHeightCheck\n");
+		nPosVHeightCheck = -1;
+	}
 	else {
 		nPosVHeightCheck = FindKey(keyVHeightCheck, 6);
 		if (nPosVHeightCheck < 0) {
@@ -336,8 +340,10 @@ bool ModifyFirmware(enModel model)
 
 	buf[nPosSyncWidthCheck+8] = 0x01;	// HSyncWidth*7 < HTotal‚Ìƒ`ƒFƒbƒN‚ð*1‚É‚µ‚Ä–³Œø‰»
 	printf("Disable sync width check buf[%08X]=%X\n", nPosSyncWidthCheck+8, buf[nPosSyncWidthCheck+8]);
-	buf[nPosVHeightCheck+nOfsVHeightCheck] = 0xC8;		// VTotalHeight‚Ì‰ºŒÀ‚ð240->200‚ÉŠÉ˜a
-	printf("Disalbe vheight check buf[%08X]=%X\n", nPosVHeightCheck+nOfsVHeightCheck, buf[nPosVHeightCheck+nOfsVHeightCheck]);
+	if (0 <= nPosVHeightCheck) {
+		buf[nPosVHeightCheck+nOfsVHeightCheck] = 0xC8;		// VTotalHeight‚Ì‰ºŒÀ‚ð240->200‚ÉŠÉ˜a
+		printf("Disalbe vheight check buf[%08X]=%X\n", nPosVHeightCheck+nOfsVHeightCheck, buf[nPosVHeightCheck+nOfsVHeightCheck]);
+	}
 	if (0 <= nPosVHeightCheck2) {
 		buf[nPosVHeightCheck2+nOfsVHeightCheck] = 0xC7;		// VTotalHeight‚Ì‰ºŒÀ‚ð240->200‚ÉŠÉ˜a
 		printf("Disalbe vheight chekc2 buf[%08X]=%X\n", nPosVHeightCheck2+nOfsVHeightCheck, buf[nPosVHeightCheck2+nOfsVHeightCheck]);
@@ -833,7 +839,7 @@ int			nMode		//!< i	:0=Dump 1=Modify -1=CheckOnly
 			ModifyAcerEK2xxYAspectFunction(model);
 		}
 
-		if (model != JG2555TC_IPAD97 && model != PCB800099) {
+		if (model != PCB800099) {
 			bModify = ModifyFirmware(model);
 			if (bModify) {
 				printf("*** modify firmware success ***\n");

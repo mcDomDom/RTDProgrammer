@@ -34,7 +34,7 @@ enum enModel
 	RTD2668,
 	V_M56VDA_IPAD97,	// V.M56VDA iPad基板 okaz氏情報提供ありがとうございます
 	V_M56VDA_IPAD97_2,	// V.M56VDA iPad基板 taobao
-	JG2555TC_IPAD97,	// JG2555TC iPad基板 Thanks Newman
+	JG2555TC_IPAD97,	// JG2555TC iPad基板 Thanks Newman -> KVC 9.7 iPad液晶(KCL-97DHS9) MJ氏情報提供ありがとうございます 
 	LHRD56_IPAD97_POO,	// 青ジャック基板にiPad 9.7型液晶を使用した15KHzモニタ用(別版) プー氏情報提供ありがとうございます
 	EK271Ebmix,			// Acer EK271Ebmix KAPPY.氏情報提供ありがとうございます
 	EK241YEbmix,		// Acer EK241YEbmix KAPPY.氏情報提供ありがとうございます

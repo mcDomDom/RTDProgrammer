@@ -399,7 +399,7 @@ static bool ShouldProgramPage(uint8_t* buffer, uint32_t size)
     return false;
 }
 
-bool ProgramFlash(const char *input_file_name, uint32_t chip_size, enModel model)
+bool ProgramFlash(const char *input_file_name, uint32_t chip_size, enModel model, int wp = -1)
 {
 	char buf[1024];
     uint32_t prog_size;
@@ -408,6 +408,10 @@ bool ProgramFlash(const char *input_file_name, uint32_t chip_size, enModel model
     {
         return false;
     }
+    if (0 <= wp) {
+	    prog_size = 512;
+	    chip_size = 512;
+	}
 
     memset(buf, 0xFF, sizeof(buf));
     if (memcmp(buf, prog, sizeof(buf)) == 0) {
@@ -426,6 +430,7 @@ bool ProgramFlash(const char *input_file_name, uint32_t chip_size, enModel model
 	else if (model == EK241YEbmix || model == EK271Ebmix  || model == C24M2020DJP || model == KA222Q) {
 		reg = 0x1D;
 	}
+	if (0 <= wp) reg = wp;
 	reg2 = reg - 0x10;
     WriteReg(0xF4, reg);
     printf("Reg:0x%02X Value=%02X\n", reg, ReadReg(0xF5));
@@ -560,7 +565,7 @@ int main(int argc, char* argv[])
     }
 
     InitI2C(i2c);
-    printf("Ready use I2C-%d\n", port);
+    printf("Ready use I2C-%d\n", i2c);
     SetI2CAddr(port);
 
     const FlashDesc* chip;
@@ -637,7 +642,17 @@ int main(int argc, char* argv[])
             size = atoi(argv[4])*1024;
         }
         printf("ProgramFlash %s size=%d(kbyte)\n", argv[2], size/1024);
-		bRet = ProgramFlash(argv[2], size, (enModel)nRet);
+		/*
+		for (int i=0; i<256; i++) {
+			bRet = ProgramFlash(argv[2], size, (enModel)nRet, i);
+			if (bRet) {
+				break;
+			}
+		}
+		if (bRet) {
+		*/
+			bRet = ProgramFlash(argv[2], size, (enModel)nRet);
+		//}
     }
     if (bRet) {
         printf("Success!\n");
