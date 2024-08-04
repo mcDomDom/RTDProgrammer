@@ -790,11 +790,16 @@ int			nMode		//!< i	:0=Dump 1=Modify -1=CheckOnly
 			// プリセットテーブルはP2314Hとほぼ同じ
 			ModifyAcerEK2xxYAspectFunction(model);
 			break;
-		case 0x227B6:
+		case 0x227B6:	// Amazon C24M2020DJP xbeeing氏
 			printf("Amazon C24M2020DJP\n");
 			model = C24M2020DJP;
 			// プリセットテーブルはP2314Hとほぼ同じ
 			ModifyAcerEK2xxYAspectFunction(model);
+			break;
+		case 0x134DB:	// Cocoper CZ-617Ph zinfyk氏
+			printf("Cocoper CZ-617Ph\n");
+			model = CZ617Ph;
+			// プリセットテーブルはP2314Hとほぼ同じ
 			break;
 		}
 	}
