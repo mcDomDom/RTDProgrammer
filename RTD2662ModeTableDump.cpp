@@ -429,6 +429,9 @@ void ModifyAcerEK2xxYAspectFunction(enModel model)
 	else if (model == C24M2020DJP) {
 		nOffset = 0x5e746;
 	}
+	else if (model == KA222Q) {
+		nOffset = 0x1eff8;
+	}
 	else {
 		printf("Invlid Model\n");
 		return;
@@ -448,6 +451,9 @@ void ModifyAcerEK2xxYAspectFunction(enModel model)
 	}
 	else if (model == C24M2020DJP) {
 		buf[nOffset++] = 0x12;	buf[nOffset++] = 0x15;	buf[nOffset++] = 0xD9;
+	}
+	else if (model == KA222Q) {
+		buf[nOffset++] = 0x12;	buf[nOffset++] = 0x12;	buf[nOffset++] = 0xCF;
 	}
 	// Aspect V 480
 	buf[nOffset++] = 0x74;	buf[nOffset++] = 0xE0;	// MOV A, #0x40
@@ -476,6 +482,10 @@ void ModifyAcerEK2xxYAspectFunction(enModel model)
 																				//     CALL ISTPTR
 		goto L_RET;
 	}
+	else if (model == KA222Q) {
+		buf[nOffset++] = 0x80;	buf[nOffset++] = 0x39;	// SJMP 0xF041
+		goto L_RET;
+	}
 	buf[nOffset++] = 0xC9;							// XCH A,R1
 	buf[nOffset++] = 0x8F;	buf[nOffset++] = 0xF0;	// MOV B,R7
 	// LCALL ISTPTR
@@ -487,6 +497,9 @@ void ModifyAcerEK2xxYAspectFunction(enModel model)
 	}
 	else if (model == QG221QHbmiix) {
 		buf[nOffset++] = 0x12;	buf[nOffset++] = 0x18;	buf[nOffset++] = 0x51;
+	}
+	else if (model == KA222Q) {
+		buf[nOffset++] = 0x12;	buf[nOffset++] = 0x12;	buf[nOffset++] = 0xCF;
 	}
 L_RET:
 	buf[nOffset++] = 0x22;	// RET
@@ -509,6 +522,10 @@ L_RET:
 	else if (model == C24M2020DJP) {
 		buf[0x3d58a] = 0xD2;	// 640x400 OK
 		buf[0x3d5cb] = 0xD2;
+	}
+	else if (model == KA222Q) {
+		buf[0x1d693] = 0xD2;	// 640x400 OK
+		buf[0x1d6d4] = 0xD2;
 	}
 
 	printf("Aspect Function Force Enable And Change 4:3 Mode\n");
@@ -776,29 +793,30 @@ int			nMode		//!< i	:0=Dump 1=Modify -1=CheckOnly
 			printf("Acer EK271Ebmix\n");
 			model = EK271Ebmix;
 			// プリセットテーブルはP2314Hとほぼ同じ
-			ModifyAcerEK2xxYAspectFunction(model);
 			break;
 		case 0x42A55:	// Acer EK241YEbmix KAPPY.氏
 			printf("Acer EK241YEbmix\n");
 			model = EK241YEbmix;
 			// プリセットテーブルはP2314Hとほぼ同じ
-			ModifyAcerEK2xxYAspectFunction(model);
 			break;
 		case 0x52A56:	// Acer QG221QHbmiix KAPPY.氏
 			printf("Acer QG221QHbmiix\n");
 			model = QG221QHbmiix;
 			// プリセットテーブルはP2314Hとほぼ同じ
-			ModifyAcerEK2xxYAspectFunction(model);
 			break;
 		case 0x227B6:	// Amazon C24M2020DJP xbeeing氏
 			printf("Amazon C24M2020DJP\n");
 			model = C24M2020DJP;
 			// プリセットテーブルはP2314Hとほぼ同じ
-			ModifyAcerEK2xxYAspectFunction(model);
 			break;
 		case 0x134DB:	// Cocoper CZ-617Ph zinfyk氏
 			printf("Cocoper CZ-617Ph\n");
 			model = CZ617Ph;
+			// プリセットテーブルはP2314Hとほぼ同じ
+			break;
+		case 0x320CC:	// Acer KA222Q CAT-2氏
+			printf("Acer KA222Q\n");
+			model = KA222Q;
 			// プリセットテーブルはP2314Hとほぼ同じ
 			break;
 		}
@@ -810,6 +828,11 @@ int			nMode		//!< i	:0=Dump 1=Modify -1=CheckOnly
 	if (nMode == 1 && model != UNKNOWN && model != RTD2668) {
 
 #if 1
+		if (model == EK271Ebmix || model == EK241YEbmix || model == QG221QHbmiix || 
+			model == C24M2020DJP || model == KA222Q) {
+			ModifyAcerEK2xxYAspectFunction(model);
+		}
+
 		if (model != JG2555TC_IPAD97 && model != PCB800099) {
 			bModify = ModifyFirmware(model);
 			if (bModify) {
