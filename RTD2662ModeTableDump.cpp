@@ -53,9 +53,9 @@
 
 enum enIndex
 {
-	X68_15K_I,		// X68000 15KHz Interlace
+//	X68_15K_I,		// X68000 15KHz Interlace
 	X68_15K_P,		// X68000 15KHz Progressive
-	X68_24K_I,		// X68000 24KHz Interlace
+//	X68_24K_I,		// X68000 24KHz Interlace
 	X68_24K_P,		// X68000 24KHz Progressive
 	X68_31K,		// X68000 31KHz
 	X68_Memtest,	// X68000 memtest68K 31KHz
@@ -419,33 +419,54 @@ void SearchAspect()
 }
 #endif
 
-// Force 4:3(640x480)
-void ModifyAcerEK2xxYAspectFunction(enModel model)
+bool DisableAcerAspectChangeCheck(enModel model)
 {
-	int nOffset;
+	bool bRet = false;
+	int nOffset[2] = {-1, -1};
+
+	printf("Disable acer aspect change check : ");
+
+	// Ignore Aspect Change Disable
 	if (model == EK241YEbmix) {
-		nOffset = 0x2f225;
+		nOffset[0] = 0x5cbe9;
+		nOffset[1] = 0x5cc25;
 	}
 	else if (model == EK271Ebmix) {
-		nOffset = 0x2f486;
+		nOffset[0] = 0x4b079;
+		nOffset[1] = 0x4b0b5;
 	}
 	else if (model == QG221QHbmiix) {
-		nOffset = 0x2f156;
+		nOffset[0] = 0x6a191;
+		nOffset[1] = 0x6a1d2;
 	}
 	else if (model == C24M2020DJP) {
-		nOffset = 0x5e746;
+		nOffset[0] = 0x3d58a;
+		nOffset[1] = 0x3d5cb;
 	}
 	else if (model == KA222Q) {
-		nOffset = 0x1eff8;
+		nOffset[0] = 0x1d693;
+		nOffset[1] = 0x1d6d4;
 	}
 	else {
-		printf("Invlid Model\n");
-		return;
+		printf("Invlid model\n");
+		goto L_RET;
 	}
-	// Aspect H 640
-	buf[nOffset++] = 0x74;	buf[nOffset++] = 0x02;	// MOV A, #0x02
-	buf[nOffset++] = 0x75;	buf[nOffset++] = 0xF0;	buf[nOffset++] = 0x80;	// MOV B, #0x80
-	// LCALL ISTPTR
+	if (buf[nOffset[0]] == 0xC2 && buf[nOffset[1]] == 0xC2) {
+		buf[nOffset[0]] = 0xD2;
+		buf[nOffset[1]] = 0xD2;
+		printf("Done\n");
+		bRet = true;
+	}
+	else {
+		printf("Faile buf[%05X]=%02X buf[%05X]=%02X\n", nOffset[0], buf[nOffset[0]], nOffset[1], buf[nOffset[1]] );
+	}
+
+L_RET:
+	return bRet;
+}
+
+void OutputAcerISTPTR(enModel model, int &nOffset)
+{
 	if (model == EK241YEbmix) {
 		buf[nOffset++] = 0x12;	buf[nOffset++] = 0x17;	buf[nOffset++] = 0xBA;
 	}
@@ -461,6 +482,51 @@ void ModifyAcerEK2xxYAspectFunction(enModel model)
 	else if (model == KA222Q) {
 		buf[nOffset++] = 0x12;	buf[nOffset++] = 0x12;	buf[nOffset++] = 0xCF;
 	}
+}
+
+int GetAspectFunctionOffset(enModel model, int &nOffsetRet)
+{
+	int nOffset = -1;
+	nOffsetRet = -1;
+	if (model == EK241YEbmix) {
+		nOffset = 0x2f225;
+		nOffsetRet = 0x2f26c;
+	}
+	else if (model == EK271Ebmix) {
+		nOffset = 0x2f486;
+		nOffsetRet = 0x2f4cd;
+	}
+	else if (model == QG221QHbmiix) {
+		nOffset = 0x2f156;
+		nOffsetRet = 0x2f19f;
+	}
+	else if (model == C24M2020DJP) {
+		nOffset = 0x5e746;
+		nOffsetRet = 0x5e78f;
+	}
+	else if (model == KA222Q) {
+		nOffset = 0x1eff8;
+		nOffsetRet = 0x1f041;
+	}
+	else {
+		printf("Invlid model\n");
+	}
+	return nOffset;
+}
+
+// Force 4:3(640x480)->未使用
+void ModifyAcerAspectFunctionForce4x3(enModel model)
+{
+	int nOffsetRet;
+	int nOffset = GetAspectFunctionOffset(model, nOffsetRet);
+	if (nOffset < 0) {
+		return;
+	}
+	// Aspect H 640
+	buf[nOffset++] = 0x74;	buf[nOffset++] = 0x02;	// MOV A, #0x02
+	buf[nOffset++] = 0x75;	buf[nOffset++] = 0xF0;	buf[nOffset++] = 0x80;	// MOV B, #0x80
+	// LCALL ISTPTR
+	OutputAcerISTPTR(model, nOffset);
 	// Aspect V 480
 	buf[nOffset++] = 0x74;	buf[nOffset++] = 0xE0;	// MOV A, #0x40
 	buf[nOffset++] = 0xFF;							// MOV R7, A
@@ -495,47 +561,165 @@ void ModifyAcerEK2xxYAspectFunction(enModel model)
 	buf[nOffset++] = 0xC9;							// XCH A,R1
 	buf[nOffset++] = 0x8F;	buf[nOffset++] = 0xF0;	// MOV B,R7
 	// LCALL ISTPTR
-	if (model == EK241YEbmix) {
-		buf[nOffset++] = 0x12;	buf[nOffset++] = 0x17;	buf[nOffset++] = 0xBA;
-	}
-	else if (model == EK271Ebmix) {
-		buf[nOffset++] = 0x12;	buf[nOffset++] = 0x17;	buf[nOffset++] = 0x66;
-	}
-	else if (model == QG221QHbmiix) {
-		buf[nOffset++] = 0x12;	buf[nOffset++] = 0x18;	buf[nOffset++] = 0x51;
-	}
-	else if (model == KA222Q) {
-		buf[nOffset++] = 0x12;	buf[nOffset++] = 0x12;	buf[nOffset++] = 0xCF;
-	}
+	OutputAcerISTPTR(model, nOffset);
 L_RET:
 	buf[nOffset++] = 0x22;	// RET
 
+	printf("Modified acer aspect function force 4:3 ratio\n");
+}
 
-
-	// Ignore Aspect Change Disable
-	if (model == EK241YEbmix) {
-		buf[0x5cbe9] = 0xD2;	// 640x400 OK
-		buf[0x5cc25] = 0xD2;
+// AcerのWide ModeメニューでAspect選択時の挙動を改造
+// mode==ModeModifyの場合は常に4:3
+// mode==ModeModify2の場合、縦解像度が350未満の場合のみ強制4:3 それ以外は元の解像度比率を使用
+//       X68000の1024x848/1024x424モードでNot Supportになる不具合あり
+//       他にも縦横比が異常なプリセットで影響出る可能性あり
+bool ModifyAcerWideModeFunction(enMode mode, enModel model)
+{
+	// Height < 350 Force 4:3(640x480)
+	int nOffsetRet;
+	int nOffset = GetAspectFunctionOffset(model, nOffsetRet);
+	if (nOffset < 0) {
+		return false;
 	}
-	else if (model == EK271Ebmix) {
-		buf[0x4b078] = 0xD2;	// 640x400 OK
-		buf[0x4b0b5] = 0xD2;
+
+	// 
+	buf[nOffset++] = 0xE9;														// MOV A,R1
+	buf[nOffset++] = 0xFC;														// MOV R4,A
+	buf[nOffset++] = 0xEA;														// MOV A,R2
+	buf[nOffset++] = 0xFD;														// MOV R5,A
+
+	// Input Width
+	if (model == EK241YEbmix || model == EK271Ebmix) {
+		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE3;	buf[nOffset++] = 0xD1;	// MOV DPTR,#E3D1 
 	}
 	else if (model == QG221QHbmiix) {
-		buf[0x6a191] = 0xD2;	// 640x400 OK
-		buf[0x6a1d2] = 0xD2;
+		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE4;	buf[nOffset++] = 0xB8;	// MOV DPTR,#E4B8
 	}
 	else if (model == C24M2020DJP) {
-		buf[0x3d58a] = 0xD2;	// 640x400 OK
-		buf[0x3d5cb] = 0xD2;
+		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE5;	buf[nOffset++] = 0x69;	// MOV DPTR,#E569
 	}
 	else if (model == KA222Q) {
-		buf[0x1d693] = 0xD2;	// 640x400 OK
-		buf[0x1d6d4] = 0xD2;
+		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE4;	buf[nOffset++] = 0x14;	// MOV DPTR,#E414
 	}
+	else {
+		printf("code not implemented\n");
+		return false;
+	}
+	// Set Input Width to HAspect
+	buf[nOffset++] = 0xE0;														// MOVX A,@DPTR
+	buf[nOffset++] = 0xFF;														// MOV R7,A
+	buf[nOffset++] = 0xA3;														// INC DPTR
+	buf[nOffset++] = 0xE0;														// MOVX A,@DPT
+	buf[nOffset++] = 0xCF;														// XCH A,R7
+	buf[nOffset++] = 0x8F;	buf[nOffset++] = 0xF0;								// MOV B,R7
+	OutputAcerISTPTR(model, nOffset);											// LCALL ISTPTR
 
-	printf("Aspect Function Force Enable And Change 4:3 Mode\n");
+	// Input Height
+	if (model == EK241YEbmix || model == EK271Ebmix) {
+		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE3;	buf[nOffset++] = 0xDD;	// MOV DPTR,#E3DD
+	}
+	else if (model == QG221QHbmiix) {
+		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE4;	buf[nOffset++] = 0xC4;	// MOV DPTR,#E4C4
+	}
+	else if (model == C24M2020DJP) {
+		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE5;	buf[nOffset++] = 0x75;	// MOV DPTR,#E575
+	}
+	else if (model == KA222Q) {
+		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE4;	buf[nOffset++] = 0x1E;	// MOV DPTR,#E41E
+	}
+	else {
+		printf("code not implemented\n");
+		return false;
+	}
+	// Set Input Height to R1/R7
+	buf[nOffset++] = 0xE0;														// MOVX A,@DPTR
+	buf[nOffset++] = 0xF9;														// MOV R1,A
+	buf[nOffset++] = 0xA3;														// INC DPTR
+	buf[nOffset++] = 0xE0;														// MOVX A,@DPTR
+	buf[nOffset++] = 0xFF;														// MOV R7,A
+
+	// Check Interlace Flag?
+	if (model == EK241YEbmix || model == EK271Ebmix) {
+		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE3;	buf[nOffset++] = 0x65;	// MOV DPTR,#E365
+	}
+	else  if (model == QG221QHbmiix) {
+		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE4;	buf[nOffset++] = 0x4C;	// MOV DPTR,#E44C
+	}
+	else  if (model == C24M2020DJP) {
+		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE5;	buf[nOffset++] = 0x35;	// MOV DPTR,#E535
+	}
+	else  if (model == KA222Q) {
+		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE3;	buf[nOffset++] = 0xE6;	// MOV DPTR,#E3E6
+	}
+	else {
+		printf("code not implemented\n");
+		return false;
+	}
+	buf[nOffset++] = 0xE0;														// MOVX A,@DPTR
+	if (model == EK241YEbmix) {
+		buf[nOffset++] = 0x12;	buf[nOffset++] = 0xE0;	buf[nOffset++] = 0xF5;	// LCALL 0xE0F5
+	}
+	else if (model == EK271Ebmix) {
+		buf[nOffset++] = 0x12;	buf[nOffset++] = 0xE7;	buf[nOffset++] = 0x9B;	// LCALL 0xE79B
+	}
+	else if (model == QG221QHbmiix || model == C24M2020DJP || model == KA222Q) {
+		// 関数の中身が展開されている
+		buf[nOffset++] = 0x13;													// RRC
+		buf[nOffset++] = 0x13;													// RRC
+		buf[nOffset++] = 0x54;	buf[nOffset++] = 0x3F;							// ANL A,#0x3F
+		buf[nOffset++] = 0x30;	buf[nOffset++] = 0xE0;	buf[nOffset++] = 0x07;	// JNB Check VHeight < 350
+		goto L_x2Height;
+	}
+	else {
+		printf("code not implemented\n");
+		return false;
+	}
+	buf[nOffset++] = 0x70;	buf[nOffset++] = 0x07;								// JNZ Check VHeight < 350
+
+L_x2Height:
+	// x2 VHeight
+	buf[nOffset++] = 0xEF;														// MOV A,R7
+	buf[nOffset++] = 0x25;	buf[nOffset++] = 0xE0;								// ADD A,A
+	buf[nOffset++] = 0xFF;														// MOV R7,A
+	buf[nOffset++] = 0xE9;														// MOV A,R1
+	buf[nOffset++] = 0x33;														// RLC A
+	buf[nOffset++] = 0xF9;														// MOV R1,A
+
+	// Check VHeight < 350
+	buf[nOffset++] = 0xC3;														// CLR CY
+	buf[nOffset++] = 0xEF;														// MOV A,R7
+	buf[nOffset++] = 0x94;	buf[nOffset++] = 0x5E;								// SUBB A,#0x5E
+	buf[nOffset++] = 0xE9;														// MOV A,R1
+	buf[nOffset++] = 0x94;	buf[nOffset++] = 0x01;								// SUBB A,#0x01 
+	if (mode == ModeModify2) {
+		// Use Original Aspect Ratio
+		buf[nOffset++] = 0x50;	buf[nOffset++] = nOffsetRet-nOffset-1;			// JNC nOffsetRet
+	}
+	else {
+		// Force 4:3 Aspect Ratio
+		buf[nOffset++] = 0x00;													// NOP
+		buf[nOffset++] = 0x00;													// NOP 
+	}
+	// Set Aspect 640x480(4:3)
+	buf[nOffset++] = 0xEC;														// MOV A,R4
+	buf[nOffset++] = 0xF9;														// MOV R1,A
+	buf[nOffset++] = 0xED;														// MOV A,R5
+	buf[nOffset++] = 0xFA;														// MOV R2,A
+	buf[nOffset++] = 0x74;	buf[nOffset++] = 0x02;								// MOV A,#0x02
+	buf[nOffset++] = 0x75;	buf[nOffset++] = 0xF0;	buf[nOffset++] = 0x80;		// MOV B,#0x80
+	OutputAcerISTPTR(model, nOffset);											// LCALL ISTPTR
+	buf[nOffset++] = 0x74;	buf[nOffset++] = 0xE0;								// MOV A,#0xE0
+	buf[nOffset++] = 0xFF;														// MOV R7,A
+	buf[nOffset++] = 0x74;	buf[nOffset++] = 0x01;								// MOV A,#0x01
+	buf[nOffset++] = 0xF9;														// MOV R1,A
+
+	for ( ; nOffset<nOffsetRet; nOffset++) buf[nOffset] = 0x00;					// NOP
+
+	printf("Modified acer wide mode function %s aspect ration\n", mode == ModeModify2 ? "original" : "force 4:3");
+
+	return true;
 }
+
 
 /**
 		同一周波数&VTotalのインタレースとプログレッシブを別々のプリセットで識別する試み
@@ -552,7 +736,7 @@ void ModifyAcerEK2xxYCompareInterlace(enModel model)
 		nOffset = 0x5c832;
 	}
 	else {
-		printf("Invlid Model\n");
+		printf("Invlid model\n");
 		return;
 	}
 
@@ -599,13 +783,13 @@ void ModifyAcerEK2xxYCompareInterlace(enModel model)
 	// CSTPTR
 	// BB 01 06 89 82 8A 83 F0 22 50 02 F7 22 BB FE 01 F3 22
 
-	printf("Compare Interlace Flag Enable\n");
+	printf("Compare interlace flag enable\n");
 }
 
 
 int RTD2662ModeTableDump(
 const char	*szPath,	//!< i	:
-int			nMode		//!< i	:0=Dump 1=Modify -1=CheckOnly
+enMode		nMode		//!< i	:0=Dump 1=Modify 2=Modify2 -1=CheckOnly
 )
 {
 	int i, ret, nModeTableCount, nOffset;
@@ -668,20 +852,21 @@ int			nMode		//!< i	:0=Dump 1=Modify -1=CheckOnly
 
 	// P2314Hの画面ﾓｰﾄﾞと使用ﾌﾟﾘｾｯﾄﾃｰﾌﾞﾙNoの紐づけ 
 	memset(nIdxNo, -1, sizeof(nIdxNo));
-	nIdxNo[X68_15K_I] = 0;		//  0:640x350 31.5KHz/70Hz
-	nIdxNo[X68_15K_P] = 1;		//  1;640x350 31.5KHz/70Hz
-	nIdxNo[X68_24K_I] = 4;		//  4:720x400 31.5KHz/70Hz
-	nIdxNo[X68_24K_P] = 5;		//  5:640x400 31.5KHz/70Hz
-	nIdxNo[X68_31K] = 6;		//  6:720x400 38.0KHz/85Hz
-	nIdxNo[X68_Memtest] = 7;	//  7:640x400 38.0KHz/85Hz
-	nIdxNo[X68_Dash] = 14;		// 14:720x480 29.8KHz/59.9Hz
-	nIdxNo[X68_FZ24K] = 16;		// 16:720x576 35.8KHz/60Hz
-	nIdxNo[X68_Druaga] = 17;	// 17:720x576 45.5KHz/75.6Hz
-	nIdxNo[FMT_Raiden] = 24;	// 24:832x624 49.7KHz/74.5Hz
-	nIdxNo[FMT_SRMP2PS] = 25;	// 25:848x480 31.0KHz/60Hz
-	nIdxNo[M72_RTYPE] = 26;		// 26:848x480 35.0KHz/70Hz
-	nIdxNo[MVS] = 27;			// 27:848x480 36.0KHz/72Hz
-	nIdxNo[FMT_LINUX] = 28;		// 28:848x480 37.6KHz/75Hz
+//ｲﾝﾀﾚｰｽ用の定義使われない事がわかったのでやめる 640x350/400等VTOWNSのBIOSで使ってるのでやめる
+//	nIdxNo[X68_15K_I] = 0;		//  0:640x350 31.5KHz/70Hz
+//	nIdxNo[X68_24K_I] = 4;		//  4:720x400 31.5KHz/70Hz
+	nIdxNo[X68_15K_P] = 16;		// 16:720x576 35.8KHz/60Hz
+	nIdxNo[X68_24K_P] = 17;		// 17:720x576 45.5KHz/75.6Hz
+	nIdxNo[X68_31K] = 24;		// 24:832x624 49.7KHz/74.5Hz
+	nIdxNo[X68_Memtest] = 25;	// 25:848x480 31.0KHz/60Hz
+	nIdxNo[X68_Dash] = 26;		// 26:848x480 35.0KHz/70Hz
+	nIdxNo[X68_FZ24K] = 27;		// 27:848x480 36.0KHz/72Hz
+	nIdxNo[X68_Druaga] = 28;	// 28:848x480 37.6KHz/75Hz
+	nIdxNo[FMT_Raiden] = 38;	// 38:1152x864 53.7KHz/60Hz
+	nIdxNo[FMT_SRMP2PS] = 39;	// 39:1152x864 64.2KHz/70.2Hz
+	nIdxNo[M72_RTYPE] = 40;		// 40:1152x864 67.5KHz/75Hz
+	nIdxNo[MVS] = 41;			// 41:1152x864 67.0KHz/85Hz
+	nIdxNo[FMT_LINUX] = 42;		// 42:1152x870 68.7KHz/75Hz
 	nIdxNo[GEN_15K_P] = 87;		// 87:1440x240 15.7KHz/60Hz
 
 	if (model == UNKNOWN) {
@@ -704,14 +889,18 @@ int			nMode		//!< i	:0=Dump 1=Modify -1=CheckOnly
 		case 0x5819:	// LH-RD56(V+H)-01 例のiPad9.7型液晶を使用した15KHzモニタ用 2048x1536.bin
 			printf("LH-RD56(V+H) Light Blue Jack iPad 9.7\n");
 			model = LHRD56_IPAD97;
-			nIdxNo[X68_Dash] = 15;		// 15:720x480 29.8KHz/59.9Hz
-			nIdxNo[X68_FZ24K] = 17;		// 17:720x576 35.8KHz/60Hz
-			nIdxNo[X68_Druaga] = 18;	// 18:720x576 45.5KHz/75.6Hz
-			nIdxNo[FMT_Raiden] = 25;	// 25:832x624 49.7KHz/74.5Hz
-			nIdxNo[FMT_SRMP2PS] = 26;	// 26:848x480 31.0KHz/60Hz
-			nIdxNo[M72_RTYPE] = 27;		// 27:848x480 35.0KHz/70Hzs
-			nIdxNo[MVS] = 37;			// 37:1152x864 53.7KHz/60Hz
-			nIdxNo[FMT_LINUX] = 38;		// 38:848x480 37.6KHz/75Hz
+			nIdxNo[X68_15K_P] = 17;		// 17:720x576 35.8KHz/60Hz
+			nIdxNo[X68_24K_P] = 18;		// 18:720x576 45.5KHz/75.6Hz
+			nIdxNo[X68_31K] = 25;		// 25:832x624 49.7KHz/74.5Hz
+			nIdxNo[X68_Memtest] = 26;	// 26:848x480 31.0KHz/60Hz
+			nIdxNo[X68_Dash] = 27;		// 27:848x480 35.0KHz/70Hz
+			nIdxNo[X68_FZ24K] = 42;		// 42:1152x900 61.8KHz/66Hz
+			nIdxNo[X68_Druaga] = 43;	// 43:1152x900 61.8KHz/66Hz
+			nIdxNo[FMT_Raiden] = 37;	// 37:1152x864 53.7KHz/60Hz
+			nIdxNo[FMT_SRMP2PS] = 38;	// 38:1152x864 64.2KHz/70.2Hz
+			nIdxNo[M72_RTYPE] = 39;		// 39:1152x864 67.5KHz/75Hz
+			nIdxNo[MVS] = 40;			// 40:1152x864 67.0KHz/85Hz
+			nIdxNo[FMT_LINUX] = 41;		// 41:1152x870 68.7KHz/75Hz
 			nIdxNo[GEN_15K_P] = 86;		// 86:1440x240 15.7KHz/60Hz
 			break;
 		case 0xD97E:	// 同上 1366x768 UIは黒ジャックと同じ？
@@ -728,27 +917,35 @@ int			nMode		//!< i	:0=Dump 1=Modify -1=CheckOnly
 			printf("V.M56VDA Black Jack iPad 9.7\n");
 			model = V_M56VDA_IPAD97;
 			// プリセットテーブルはLH-RD56(V+H) iPad 9.7と同じ
-			nIdxNo[X68_Dash] = 15;		// 15:720x480 29.8KHz/59.9Hz
-			nIdxNo[X68_FZ24K] = 17;		// 17:720x576 35.8KHz/60Hz
-			nIdxNo[X68_Druaga] = 18;	// 18:720x576 45.5KHz/75.6Hz
-			nIdxNo[FMT_Raiden] = 25;	// 25:832x624 49.7KHz/74.5Hz
-			nIdxNo[FMT_SRMP2PS] = 26;	// 26:848x480 31.0KHz/60Hz
-			nIdxNo[M72_RTYPE] = 27;		// 27:848x480 35.0KHz/70Hzs
-			nIdxNo[MVS] = 37;			// 37:1152x864 53.7KHz/60Hz
-			nIdxNo[FMT_LINUX] = 38;		// 38:848x480 37.6KHz/75Hz
+			nIdxNo[X68_15K_P] = 17;		// 17:720x576 35.8KHz/60Hz
+			nIdxNo[X68_24K_P] = 18;		// 18:720x576 45.5KHz/75.6Hz
+			nIdxNo[X68_31K] = 25;		// 25:832x624 49.7KHz/74.5Hz
+			nIdxNo[X68_Memtest] = 26;	// 26:848x480 31.0KHz/60Hz
+			nIdxNo[X68_Dash] = 27;		// 27:848x480 35.0KHz/70Hz
+			nIdxNo[X68_FZ24K] = 42;		// 42:1152x900 61.8KHz/66Hz
+			nIdxNo[X68_Druaga] = 43;	// 43:1152x900 61.8KHz/66Hz
+			nIdxNo[FMT_Raiden] = 37;	// 37:1152x864 53.7KHz/60Hz
+			nIdxNo[FMT_SRMP2PS] = 38;	// 38:1152x864 64.2KHz/70.2Hz
+			nIdxNo[M72_RTYPE] = 39;		// 39:1152x864 67.5KHz/75Hz
+			nIdxNo[MVS] = 40;			// 40:1152x864 67.0KHz/85Hz
+			nIdxNo[FMT_LINUX] = 41;		// 41:1152x870 68.7KHz/75Hz
 			nIdxNo[GEN_15K_P] = 86;		// 86:1440x240 15.7KHz/60Hz
 			break;
 		case 0x221A3:	// taobao 広州四維液晶貿易有限公司 V.M56VDA iPad
 			printf("V.M56VDA Black Jack iPad 9.7(taobao)\n");
 			model = V_M56VDA_IPAD97_2;
-			nIdxNo[X68_Dash] = 15;		// 15:720x480 29.8KHz/59.9Hz
-			nIdxNo[X68_FZ24K] = 17;		// 17:720x576 35.8KHz/60Hz
-			nIdxNo[X68_Druaga] = 18;	// 18:720x576 45.5KHz/75.6Hz
-			nIdxNo[FMT_Raiden] = 25;	// 25:832x624 49.7KHz/74.5Hz
-			nIdxNo[FMT_SRMP2PS] = 26;	// 26:848x480 31.0KHz/60Hz
-			nIdxNo[M72_RTYPE] = 27;		// 27:848x480 35.0KHz/70Hzs
-			nIdxNo[MVS] = 37;			// 37:1152x864 53.7KHz/60Hz
-			nIdxNo[FMT_LINUX] = 38;		// 38:848x480 37.6KHz/75Hz
+			nIdxNo[X68_15K_P] = 17;		// 17:720x576 35.8KHz/60Hz
+			nIdxNo[X68_24K_P] = 18;		// 18:720x576 45.5KHz/75.6Hz
+			nIdxNo[X68_31K] = 25;		// 25:832x624 49.7KHz/74.5Hz
+			nIdxNo[X68_Memtest] = 26;	// 26:848x480 31.0KHz/60Hz
+			nIdxNo[X68_Dash] = 27;		// 27:848x480 35.0KHz/70Hz
+			nIdxNo[X68_FZ24K] = 42;		// 42:1152x900 61.8KHz/66Hz
+			nIdxNo[X68_Druaga] = 43;	// 43:1152x900 61.8KHz/66Hz
+			nIdxNo[FMT_Raiden] = 37;	// 37:1152x864 53.7KHz/60Hz
+			nIdxNo[FMT_SRMP2PS] = 38;	// 38:1152x864 64.2KHz/70.2Hz
+			nIdxNo[M72_RTYPE] = 39;		// 39:1152x864 67.5KHz/75Hz
+			nIdxNo[MVS] = 40;			// 40:1152x864 67.0KHz/85Hz
+			nIdxNo[FMT_LINUX] = 41;		// 41:1152x870 68.7KHz/75Hz
 			nIdxNo[GEN_15K_P] = 86;		// 86:1440x240 15.7KHz/60Hz
 			break;
 		case 0x22386:
@@ -764,9 +961,9 @@ int			nMode		//!< i	:0=Dump 1=Modify -1=CheckOnly
 		case 0x39c7:	// PCB800099(RTD2660/RTD2662)
 			printf("PCB800099\n");
 			model = PCB800099;
-			nIdxNo[X68_15K_I] = 0;		
+//			nIdxNo[X68_15K_I] = 0;		
 			nIdxNo[X68_15K_P] = 3;		
-			nIdxNo[X68_24K_I] = 4;		
+//			nIdxNo[X68_24K_I] = 4;		
 			nIdxNo[X68_24K_P] = 13;		
 			nIdxNo[X68_31K] = 18;		
 			nIdxNo[X68_Memtest] = 19;
@@ -781,9 +978,9 @@ int			nMode		//!< i	:0=Dump 1=Modify -1=CheckOnly
 		case 0x3841:	// PCB800099(Newman BluePCB)
 			printf("PCB800099(Newman BluePCB)\n");
 			model = PCB800099;
-			nIdxNo[X68_15K_I] = 0;		// 640x350
+//			nIdxNo[X68_15K_I] = 0;		// 640x350
 			nIdxNo[X68_15K_P] = 3;		// 720x400
-			nIdxNo[X68_24K_I] = 4;		// 720x400
+//			nIdxNo[X68_24K_I] = 4;		// 720x400
 			nIdxNo[X68_24K_P] = 6;		// 720x400
 			nIdxNo[X68_31K] = 12;		// 800x480
 			nIdxNo[X68_Memtest] = 13;	// 800x480
@@ -831,12 +1028,17 @@ int			nMode		//!< i	:0=Dump 1=Modify -1=CheckOnly
 		fprintf(stderr, "unknown firmware nModeTableStart=%X\n", nModeTableStart);
 	}
 	
-	if (nMode == 1 && model != UNKNOWN && model != RTD2668) {
+	if ((nMode == ModeModify || nMode == ModeModify2) && model != UNKNOWN && model != RTD2668) {
 
 #if 1
 		if (model == EK271Ebmix || model == EK241YEbmix || model == QG221QHbmiix || 
 			model == C24M2020DJP || model == KA222Q) {
-			ModifyAcerEK2xxYAspectFunction(model);
+			if (DisableAcerAspectChangeCheck(model)) {
+				ModifyAcerWideModeFunction(nMode, model);
+			}
+			else {
+				fprintf(stderr, "can't modify acer aspect function\n");
+			}
 		}
 
 		if (model != PCB800099) {
@@ -853,9 +1055,7 @@ int			nMode		//!< i	:0=Dump 1=Modify -1=CheckOnly
 #endif
 
 		//											Pol   Wid   Hei  HFrq VFrq HT VT HTot  VTot HSB  VSB
-  		//SetParameter<T_Info>(nIdxNo[X68_15K_I],		0x0F,  512, 480, 159, 615, 5, 5,  608, 521,  78, 24);		// X68000  512x512 15KHz(interlace)
-		SetParameter<T_Info>(nIdxNo[X68_15K_P],		0x0F,  512, 240, 159, 615, 5, 5,  608, 262,  78, 20);		// X68000  512x240 15KHz
-		//SetParameter<T_Info>(nIdxNo[X68_24K_I],		0x0F, 1024, 848, 246, 532, 5, 5, 1408, 931, 282, 46);		// X68000 1024x848 24KHz(interlace) 偶数・奇数ライン逆？
+		SetParameter<T_Info>(nIdxNo[X68_15K_P],		0x0F,  640, 240, 159, 615, 5, 5,  760, 262,  98, 20);		// X68000  512x240 15KHz
 		SetParameter<T_Info>(nIdxNo[X68_24K_P],		0x0F, 1024, 424, 246, 532, 5, 5, 1408, 465, 282, 23);		// X68000 1024x424 24KHz
 		SetParameter<T_Info>(nIdxNo[X68_31K],		0x0F,  768, 512, 314, 554, 5, 5, 1104, 568, 261, 32);		// X68000  768x512 31KHz
 		SetParameter<T_Info>(nIdxNo[X68_Memtest],	0x0F,  768, 512, 340, 554, 5, 5, 1130, 613, 320, 41);		// X68000 memtest 31KHz
@@ -887,7 +1087,7 @@ int			nMode		//!< i	:0=Dump 1=Modify -1=CheckOnly
 		if (fpOut) {
 			ret = fwrite(buf, nFileLen, 1, fpOut);
 			if (ret) {
-				printf("modify done\n");
+				printf("Modified firmware %s writ ok\n", szFilePath);
 			}
 			else {
 				fprintf(stderr, "can't write %s\n", szFilePath);
@@ -898,7 +1098,7 @@ int			nMode		//!< i	:0=Dump 1=Modify -1=CheckOnly
 			fprintf(stderr, "can't open %s\n", szFilePath);
 		}
 	}
-	else if (nMode == 0) {
+	else if (nMode == ModeDump) {
 		strcpy(szFilePath, MakePath(szFilePath, "", ".csv"));
 		fpCsv = fopen(szFilePath, "wt");
 		if (!fpCsv) {

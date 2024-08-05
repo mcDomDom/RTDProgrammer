@@ -320,7 +320,7 @@ uint64_t GetFileSize(FILE* file)
     current_pos = ftell(file);
     fseek(file, 0, SEEK_END);
     result = ftell(file);
-    fseek(file, current_pos, SEEK_SET);
+    fseek(file, (long)current_pos, SEEK_SET);
 
     return result;
 }
@@ -399,7 +399,7 @@ static bool ShouldProgramPage(uint8_t* buffer, uint32_t size)
     return false;
 }
 
-bool ProgramFlash(const char *input_file_name, uint32_t chip_size, enModel model, int wp = -1)
+bool ProgramFlash(const char *input_file_name, uint32_t chip_size, enModel model, int wp = -1, int force_size = -1)
 {
 	char buf[1024];
     uint32_t prog_size;
@@ -408,9 +408,9 @@ bool ProgramFlash(const char *input_file_name, uint32_t chip_size, enModel model
     {
         return false;
     }
-    if (0 <= wp) {
-	    prog_size = 512;
-	    chip_size = 512;
+    if (0 <= force_size) {
+	    prog_size = force_size;
+	    chip_size = force_size;
 	}
 
     memset(buf, 0xFF, sizeof(buf));
@@ -538,7 +538,7 @@ bool ProgramFlash(const char *input_file_name, uint32_t chip_size, enModel model
     return data_crc == chip_crc;
 }
 
-int RTD2662ModeTableDump(const char *szPath, int nMode);
+int RTD2662ModeTableDump(const char *szPath, enMode nMode);
 
 int main(int argc, char* argv[])
 {
@@ -549,19 +549,23 @@ int main(int argc, char* argv[])
 	char	szCheckFilePath[1024], szExt[256], *p;
 
     if (argc < 3) {
-        printf("%s (-r/-w/-dump/-modify) file.bin (i2c port) (size kbyte)\n", argv[0]);
+        printf("%s (-r/-w/-dump/-modify) file.bin (i2c port)\n", argv[0]);
         goto L_RET;
     }
     if (strcmp(argv[1], "-dump")==0) {
-        RTD2662ModeTableDump(argv[2], 0);
+        RTD2662ModeTableDump(argv[2], ModeDump);
         goto L_RET;
     }
     else if (strcmp(argv[1], "-modify")==0) {
-        RTD2662ModeTableDump(argv[2], 1);
+        RTD2662ModeTableDump(argv[2], ModeModify);
+        goto L_RET;
+    }
+    else if (strcmp(argv[1], "-modify2")==0) {
+        RTD2662ModeTableDump(argv[2], ModeModify2);
         goto L_RET;
     }
     if (4 <= argc) {
-        i2c = strtol(argv[3], NULL, 0);
+        i2c = (uint8_t)strtol(argv[3], NULL, 0);
     }
 
     InitI2C(i2c);
@@ -602,11 +606,8 @@ int main(int argc, char* argv[])
     b = SPICommonCommand(E_CC_READ, 0x35, 1, 0, 0);
     printf("Flash status register(S15-S8): 0x%02x\n", b);
 
+    int size = chip->size_kb * 1024;
     if (3 <= argc &&strcmp(argv[1], "-r")==0) {
-        int size = chip->size_kb * 1024;
-        if (5 <= argc) {
-            size = atoi(argv[4])*1024;
-        }
         printf("SaveFlash %s size=%d(kbyte)\n", argv[2], size/1024);
         bRet = SaveFlash(argv[2], size);
     }
@@ -630,29 +631,28 @@ int main(int argc, char* argv[])
 		}
 		else {
 			printf("Check original firmware %s\n", szCheckFilePath);
-			nRet = RTD2662ModeTableDump(szCheckFilePath, -1);
+			nRet = RTD2662ModeTableDump(szCheckFilePath, ModeCheck);
 			if (nRet <= 0) {	// UNKNOWN or error
 				fprintf(stderr, "original firm %s not exist or invalid(nRet=%d)\n", szCheckFilePath, nRet);
 				goto L_RET;
 			}
 		}
 
-        int size = chip->size_kb * 1024;
-        if (5 <= argc) {
-            size = atoi(argv[4])*1024;
-        }
         printf("ProgramFlash %s size=%d(kbyte)\n", argv[2], size/1024);
-		/*
-		for (int i=0; i<256; i++) {
-			bRet = ProgramFlash(argv[2], size, (enModel)nRet, i);
-			if (bRet) {
-				break;
+		int wp = -1;
+		if (5 <= argc && strcmp(argv[4], "-brutewp") == 0) {
+			for (int i=0; i<256; i++) {
+				bRet = ProgramFlash(argv[2], size, (enModel)nRet, i, 512);
+				if (bRet) {
+					wp = i;
+					printf("*** Use wp=%02X ***\n", wp);
+					break;
+				}
 			}
 		}
 		if (bRet) {
-		*/
-			bRet = ProgramFlash(argv[2], size, (enModel)nRet);
-		//}
+			bRet = ProgramFlash(argv[2], size, (enModel)nRet, wp);
+		}
     }
     if (bRet) {
         printf("Success!\n");

@@ -104,7 +104,7 @@ bool WriteBytesToAddr(uint8_t reg, uint8_t* values, uint8_t len)
     PUCHAR iTmpWriteBuffer = new UCHAR[iTmpWriteLength];
 
     memcpy(&iTmpWriteBuffer[2], values, len);
-    iTmpWriteBuffer[0] = g_iDevice << 1; // SSD1306 I2C Address (But Need Shifted)
+    iTmpWriteBuffer[0] = (UCHAR)(g_iDevice << 1); // SSD1306 I2C Address (But Need Shifted)
     iTmpWriteBuffer[1] = reg; // SSD1306 OLED Write Data
     BOOL b = CH341StreamI2C(g_iIndex, iTmpWriteLength, iTmpWriteBuffer, 0UL, NULL);
 #ifdef _DEBUG
@@ -162,7 +162,7 @@ bool ReadBytesFromAddr(uint8_t reg, uint8_t* dest, uint8_t len)
 {
 #ifdef WIN32
     // I2C Transfer
-	uint8_t wr[2] = {g_iDevice<<1, reg};
+	uint8_t wr[2] = {(uint8_t)(g_iDevice<<1), reg};
     BOOL b = CH341StreamI2C(g_iIndex, 2, &wr[0], len, dest);
 #ifdef _DEBUG
 	for (int i=1; i<2; i++) {

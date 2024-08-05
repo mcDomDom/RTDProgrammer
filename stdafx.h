@@ -44,4 +44,10 @@ enum enModel
 	KA222Q,				// Acer KA222Q CAT-2î•ñ’ñ‹Ÿ‚ ‚è‚ª‚Æ‚¤‚²‚´‚¢‚Ü‚·
 };
 
-
+enum enMode
+{
+	ModeCheck = -1,
+	ModeDump, 
+	ModeModify,
+	ModeModify2
+};
