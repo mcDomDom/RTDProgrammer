@@ -543,6 +543,7 @@ int RTD2662ModeTableDump(const char *szPath, enMode nMode);
 int main(int argc, char* argv[])
 {
 	int nRet;
+	int i, size, wp = -1;
     bool bRet = true;
     uint8_t b, port = 0x4a, i2c = 1;
     uint32_t jedec_id;
@@ -606,7 +607,7 @@ int main(int argc, char* argv[])
     b = SPICommonCommand(E_CC_READ, 0x35, 1, 0, 0);
     printf("Flash status register(S15-S8): 0x%02x\n", b);
 
-    int size = chip->size_kb * 1024;
+    size = chip->size_kb * 1024;
     if (3 <= argc &&strcmp(argv[1], "-r")==0) {
         printf("SaveFlash %s size=%d(kbyte)\n", argv[2], size/1024);
         bRet = SaveFlash(argv[2], size);
@@ -639,9 +640,8 @@ int main(int argc, char* argv[])
 		}
 
         printf("ProgramFlash %s size=%d(kbyte)\n", argv[2], size/1024);
-		int wp = -1;
 		if (5 <= argc && strcmp(argv[4], "-brutewp") == 0) {
-			for (int i=0; i<256; i++) {
+			for (i=0; i<256; i++) {
 				bRet = ProgramFlash(argv[2], size, (enModel)nRet, i, 512);
 				if (bRet) {
 					wp = i;
