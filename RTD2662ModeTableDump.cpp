@@ -715,7 +715,7 @@ L_x2Height:
 
 	for ( ; nOffset<nOffsetRet; nOffset++) buf[nOffset] = 0x00;					// NOP
 
-	printf("Modified acer wide mode function %s aspect ration\n", mode == ModeModify2 ? "original" : "force 4:3");
+	printf("Modified acer wide mode function %s aspect ratio\n", mode == ModeModify2 ? "original" : "force 4:3");
 
 	return true;
 }
