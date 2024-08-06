@@ -561,8 +561,8 @@ int main(int argc, char* argv[])
         RTD2662ModeTableDump(argv[2], ModeModify);
         goto L_RET;
     }
-    else if (strcmp(argv[1], "-modify2")==0) {
-        RTD2662ModeTableDump(argv[2], ModeModify2);
+    else if (strcmp(argv[1], "-modify4x3")==0) {
+        RTD2662ModeTableDump(argv[2], ModeModify4x3);
         goto L_RET;
     }
     if (4 <= argc) {

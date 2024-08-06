@@ -569,10 +569,10 @@ L_RET:
 }
 
 // AcerのWide ModeメニューでAspect選択時の挙動を改造
-// mode==ModeModifyの場合は常に4:3
-// mode==ModeModify2の場合、縦解像度が350未満の場合のみ強制4:3 それ以外は元の解像度比率を使用
+// mode==ModeModifyの場合、縦解像度が350未満の場合のみ強制4:3 それ以外は元の解像度比率を使用
 //       X68000の1024x848/1024x424モードでNot Supportになる不具合あり
 //       他にも縦横比が異常なプリセットで影響出る可能性あり
+// mode==ModeModify4x3の場合は常に4:3
 bool ModifyAcerWideModeFunction(enMode mode, enModel model)
 {
 	// Height < 350 Force 4:3(640x480)
@@ -691,14 +691,14 @@ L_x2Height:
 	buf[nOffset++] = 0x94;	buf[nOffset++] = 0x5E;								// SUBB A,#0x5E
 	buf[nOffset++] = 0xE9;														// MOV A,R1
 	buf[nOffset++] = 0x94;	buf[nOffset++] = 0x01;								// SUBB A,#0x01 
-	if (mode == ModeModify2) {
-		// Use Original Aspect Ratio
-		buf[nOffset++] = 0x50;	buf[nOffset++] = nOffsetRet-nOffset-1;			// JNC nOffsetRet
-	}
-	else {
+	if (mode == ModeModify4x3) {
 		// Force 4:3 Aspect Ratio
 		buf[nOffset++] = 0x00;													// NOP
 		buf[nOffset++] = 0x00;													// NOP 
+	}
+	else {
+		// Use Original Aspect Ratio
+		buf[nOffset++] = 0x50;	buf[nOffset++] = nOffsetRet-nOffset-1;			// JNC nOffsetRet
 	}
 	// Set Aspect 640x480(4:3)
 	buf[nOffset++] = 0xEC;														// MOV A,R4
@@ -715,7 +715,7 @@ L_x2Height:
 
 	for ( ; nOffset<nOffsetRet; nOffset++) buf[nOffset] = 0x00;					// NOP
 
-	printf("Modified acer wide mode function %s aspect ratio\n", mode == ModeModify2 ? "original" : "force 4:3");
+	printf("Modified acer wide mode function %s aspect ratio\n", mode == ModeModify4x3 ? "force 4:3" : "original" );
 
 	return true;
 }
@@ -789,7 +789,7 @@ void ModifyAcerEK2xxYCompareInterlace(enModel model)
 
 int RTD2662ModeTableDump(
 const char	*szPath,	//!< i	:
-enMode		nMode		//!< i	:0=Dump 1=Modify 2=Modify2 -1=CheckOnly
+enMode		nMode		//!< i	:0=Dump 1=Modify 2=Modify4x3 -1=CheckOnly
 )
 {
 	int i, ret, nModeTableCount, nOffset;
@@ -1028,7 +1028,7 @@ enMode		nMode		//!< i	:0=Dump 1=Modify 2=Modify2 -1=CheckOnly
 		fprintf(stderr, "unknown firmware nModeTableStart=%X\n", nModeTableStart);
 	}
 	
-	if ((nMode == ModeModify || nMode == ModeModify2) && model != UNKNOWN && model != RTD2668) {
+	if ((nMode == ModeModify || nMode == ModeModify4x3) && model != UNKNOWN && model != RTD2668) {
 
 #if 1
 		if (model == EK271Ebmix || model == EK241YEbmix || model == QG221QHbmiix || 

@@ -49,5 +49,5 @@ enum enMode
 	ModeCheck = -1,
 	ModeDump, 
 	ModeModify,
-	ModeModify2
+	ModeModify4x3
 };
