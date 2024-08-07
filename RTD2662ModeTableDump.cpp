@@ -447,6 +447,10 @@ bool DisableAcerAspectChangeCheck(enModel model)
 		nOffset[0] = 0x1d693;
 		nOffset[1] = 0x1d6d4;
 	}
+	else if (model == EK221QE3bi) {
+		nOffset[0] = 0x5ce60;
+		nOffset[1] = 0x5ce9c;
+	}
 	else {
 		printf("Invlid model\n");
 		goto L_RET;
@@ -465,7 +469,7 @@ L_RET:
 	return bRet;
 }
 
-void OutputAcerISTPTR(enModel model, int &nOffset)
+void OutputISTPTR(enModel model, int &nOffset)
 {
 	if (model == EK241YEbmix) {
 		buf[nOffset++] = 0x12;	buf[nOffset++] = 0x17;	buf[nOffset++] = 0xBA;
@@ -481,6 +485,12 @@ void OutputAcerISTPTR(enModel model, int &nOffset)
 	}
 	else if (model == KA222Q) {
 		buf[nOffset++] = 0x12;	buf[nOffset++] = 0x12;	buf[nOffset++] = 0xCF;
+	}
+	else if (model == EK221QE3bi) {
+		buf[nOffset++] = 0x12;	buf[nOffset++] = 0x16;	buf[nOffset++] = 0x5E;
+	}
+		else if (model == LHRD56_IPAD97) {
+		buf[nOffset++] = 0x12;	buf[nOffset++] = 0x12;	buf[nOffset++] = 0xB8;
 	}
 }
 
@@ -508,98 +518,35 @@ int GetAspectFunctionOffset(enModel model, int &nOffsetRet)
 		nOffset = 0x1eff8;
 		nOffsetRet = 0x1f041;
 	}
+	else if (model == EK221QE3bi) {
+		nOffset = 0x2f56c;
+		nOffsetRet = 0x2f5b3;
+	}
 	else {
 		printf("Invlid model\n");
 	}
 	return nOffset;
 }
 
-// Force 4:3(640x480)->未使用
-void ModifyAcerAspectFunctionForce4x3(enModel model)
+bool SetAcerWideModeFunction(enMode mode, enModel model, int &nOffset, int nOffsetRet)
 {
-	int nOffsetRet;
-	int nOffset = GetAspectFunctionOffset(model, nOffsetRet);
-	if (nOffset < 0) {
-		return;
-	}
-	// Aspect H 640
-	buf[nOffset++] = 0x74;	buf[nOffset++] = 0x02;	// MOV A, #0x02
-	buf[nOffset++] = 0x75;	buf[nOffset++] = 0xF0;	buf[nOffset++] = 0x80;	// MOV B, #0x80
-	// LCALL ISTPTR
-	OutputAcerISTPTR(model, nOffset);
-	// Aspect V 480
-	buf[nOffset++] = 0x74;	buf[nOffset++] = 0xE0;	// MOV A, #0x40
-	buf[nOffset++] = 0xFF;							// MOV R7, A
-	buf[nOffset++] = 0x74;	buf[nOffset++] = 0x01;	// MOV A, #0x01
-	buf[nOffset++] = 0xF9;							// MOV R1, A
-	// Restore param2 R2/R3
-	if (model == EK241YEbmix) {
-		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE0;	buf[nOffset++] = 0x88;	// MOV DPTR, #0xE088
-		buf[nOffset++] = 0x12;	buf[nOffset++] = 0xE1;	buf[nOffset++] = 0x1B;	// LCALL restore R2/R3
-	}
-	else if (model == EK271Ebmix) {
-		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE0;	buf[nOffset++] = 0x88;	// MOV DPTR, #0xE088
-		buf[nOffset++] = 0x12;	buf[nOffset++] = 0xE7;	buf[nOffset++] = 0xC1;	// LCALL restore R2/R3
-	}
-	else if (model == QG221QHbmiix) {
-		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE3;	buf[nOffset++] = 0x08;	// MOV DPTR, #0xE308
-		buf[nOffset++] = 0x12;	buf[nOffset++] = 0xE9;	buf[nOffset++] = 0x88;	// LCALL restore R2/R3
-	}
-	else if (model == C24M2020DJP) {
-		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE3;	buf[nOffset++] = 0x35;	// MOV DPTR, #0xE335
-		buf[nOffset++] = 0x12;	buf[nOffset++] = 0xAB;	buf[nOffset++] = 0xF3;	// LCALL
-																				//     restore R2/R3
-																				//     XCH A,R1
-																				//     MOV B,R7
-																				//     CALL ISTPTR
-		goto L_RET;
-	}
-	else if (model == KA222Q) {
-		buf[nOffset++] = 0x80;	buf[nOffset++] = 0x39;	// SJMP 0xF041
-		goto L_RET;
-	}
-	buf[nOffset++] = 0xC9;							// XCH A,R1
-	buf[nOffset++] = 0x8F;	buf[nOffset++] = 0xF0;	// MOV B,R7
-	// LCALL ISTPTR
-	OutputAcerISTPTR(model, nOffset);
-L_RET:
-	buf[nOffset++] = 0x22;	// RET
-
-	printf("Modified acer aspect function force 4:3 ratio\n");
-}
-
-// AcerのWide ModeメニューでAspect選択時の挙動を改造
-// mode==ModeModifyの場合、縦解像度が350未満の場合のみ強制4:3 それ以外は元の解像度比率を使用
-//       X68000の1024x848/1024x424モードでNot Supportになる不具合あり
-//       他にも縦横比が異常なプリセットで影響出る可能性あり
-// mode==ModeModify4x3の場合は常に4:3
-bool ModifyAcerWideModeFunction(enMode mode, enModel model)
-{
-	// Height < 350 Force 4:3(640x480)
-	int nOffsetRet;
-	int nOffset = GetAspectFunctionOffset(model, nOffsetRet);
-	if (nOffset < 0) {
-		return false;
-	}
-
-	// 
-	buf[nOffset++] = 0xE9;														// MOV A,R1
-	buf[nOffset++] = 0xFC;														// MOV R4,A
-	buf[nOffset++] = 0xEA;														// MOV A,R2
-	buf[nOffset++] = 0xFD;														// MOV R5,A
+	int nJmpOffsetRetPos = -1;
 
 	// Input Width
-	if (model == EK241YEbmix || model == EK271Ebmix) {
-		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE3;	buf[nOffset++] = 0xD1;	// MOV DPTR,#E3D1 
+	if (model == EK241YEbmix || model == EK271Ebmix || model == EK221QE3bi) {
+		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE3;	buf[nOffset++] = 0xD1;	// MOV DPTR,Input Width
 	}
 	else if (model == QG221QHbmiix) {
-		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE4;	buf[nOffset++] = 0xB8;	// MOV DPTR,#E4B8
+		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE4;	buf[nOffset++] = 0xB8;	// MOV DPTR,Input Width
 	}
 	else if (model == C24M2020DJP) {
-		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE5;	buf[nOffset++] = 0x69;	// MOV DPTR,#E569
+		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE5;	buf[nOffset++] = 0x69;	// MOV DPTR,Input Width
 	}
 	else if (model == KA222Q) {
-		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE4;	buf[nOffset++] = 0x14;	// MOV DPTR,#E414
+		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE4;	buf[nOffset++] = 0x14;	// MOV DPTR,Input Width
+	}
+	else if (model == LHRD56_IPAD97) {
+		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xD8;	buf[nOffset++] = 0xB0;	// MOV DPTR,Input Width
 	}
 	else {
 		printf("code not implemented\n");
@@ -612,20 +559,23 @@ bool ModifyAcerWideModeFunction(enMode mode, enModel model)
 	buf[nOffset++] = 0xE0;														// MOVX A,@DPT
 	buf[nOffset++] = 0xCF;														// XCH A,R7
 	buf[nOffset++] = 0x8F;	buf[nOffset++] = 0xF0;								// MOV B,R7
-	OutputAcerISTPTR(model, nOffset);											// LCALL ISTPTR
+	OutputISTPTR(model, nOffset);											// LCALL ISTPTR
 
 	// Input Height
-	if (model == EK241YEbmix || model == EK271Ebmix) {
-		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE3;	buf[nOffset++] = 0xDD;	// MOV DPTR,#E3DD
+	if (model == EK241YEbmix || model == EK271Ebmix || model == EK221QE3bi) {
+		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE3;	buf[nOffset++] = 0xDD;	// MOV DPTR,Input Height
 	}
 	else if (model == QG221QHbmiix) {
-		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE4;	buf[nOffset++] = 0xC4;	// MOV DPTR,#E4C4
+		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE4;	buf[nOffset++] = 0xC4;	// MOV DPTR,Input Height
 	}
 	else if (model == C24M2020DJP) {
-		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE5;	buf[nOffset++] = 0x75;	// MOV DPTR,#E575
+		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE5;	buf[nOffset++] = 0x75;	// MOV DPTR,Input Height
 	}
 	else if (model == KA222Q) {
-		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE4;	buf[nOffset++] = 0x1E;	// MOV DPTR,#E41E
+		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE4;	buf[nOffset++] = 0x1E;	// MOV DPTR,Input Height
+	}
+	else if (model == LHRD56_IPAD97) {
+		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xD8;	buf[nOffset++] = 0xBA;	// MOV DPTR,Input Height
 	}
 	else {
 		printf("code not implemented\n");
@@ -639,17 +589,20 @@ bool ModifyAcerWideModeFunction(enMode mode, enModel model)
 	buf[nOffset++] = 0xFF;														// MOV R7,A
 
 	// Check Interlace Flag?
-	if (model == EK241YEbmix || model == EK271Ebmix) {
-		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE3;	buf[nOffset++] = 0x65;	// MOV DPTR,#E365
+	if (model == EK241YEbmix || model == EK271Ebmix || model == EK221QE3bi) {
+		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE3;	buf[nOffset++] = 0x65;	// MOV DPTR,Interlace Flag
 	}
 	else  if (model == QG221QHbmiix) {
-		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE4;	buf[nOffset++] = 0x4C;	// MOV DPTR,#E44C
+		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE4;	buf[nOffset++] = 0x4C;	// MOV DPTR,Interlace Flag
 	}
 	else  if (model == C24M2020DJP) {
-		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE5;	buf[nOffset++] = 0x35;	// MOV DPTR,#E535
+		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE5;	buf[nOffset++] = 0x35;	// MOV DPTR,Interlace Flag
 	}
 	else  if (model == KA222Q) {
-		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE3;	buf[nOffset++] = 0xE6;	// MOV DPTR,#E3E6
+		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE3;	buf[nOffset++] = 0xE6;	// MOV DPTR,Interlace Flag
+	}
+	else  if (model == LHRD56_IPAD97) {
+		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xD8;	buf[nOffset++] = 0xAB;	// MOV DPTR,Interlace Flag
 	}
 	else {
 		printf("code not implemented\n");
@@ -657,18 +610,22 @@ bool ModifyAcerWideModeFunction(enMode mode, enModel model)
 	}
 	buf[nOffset++] = 0xE0;														// MOVX A,@DPTR
 	if (model == EK241YEbmix) {
-		buf[nOffset++] = 0x12;	buf[nOffset++] = 0xE0;	buf[nOffset++] = 0xF5;	// LCALL 0xE0F5
+		buf[nOffset++] = 0x12;	buf[nOffset++] = 0xE0;	buf[nOffset++] = 0xF5;	// LCALL CheckInterlaceFlag
 	}
 	else if (model == EK271Ebmix) {
-		buf[nOffset++] = 0x12;	buf[nOffset++] = 0xE7;	buf[nOffset++] = 0x9B;	// LCALL 0xE79B
+		buf[nOffset++] = 0x12;	buf[nOffset++] = 0xE7;	buf[nOffset++] = 0x9B;	// LCALL CheckInterlaceFlag
 	}
-	else if (model == QG221QHbmiix || model == C24M2020DJP || model == KA222Q) {
-		// 関数の中身が展開されている
+	else if (model == QG221QHbmiix || model == C24M2020DJP || model == KA222Q ||
+			 model == LHRD56_IPAD97) {
+		// CheckInterlaceFlagが展開されている
 		buf[nOffset++] = 0x13;													// RRC
 		buf[nOffset++] = 0x13;													// RRC
 		buf[nOffset++] = 0x54;	buf[nOffset++] = 0x3F;							// ANL A,#0x3F
 		buf[nOffset++] = 0x30;	buf[nOffset++] = 0xE0;	buf[nOffset++] = 0x07;	// JNB Check VHeight < 350
 		goto L_x2Height;
+	}
+	else if (model == EK221QE3bi) {
+		buf[nOffset++] = 0x12;	buf[nOffset++] = 0xE9;	buf[nOffset++] = 0x31;	// LCALL CheckInterlaceFlag
 	}
 	else {
 		printf("code not implemented\n");
@@ -699,6 +656,7 @@ L_x2Height:
 	else {
 		// Use Original Aspect Ratio
 		buf[nOffset++] = 0x50;	buf[nOffset++] = nOffsetRet-nOffset-1;			// JNC nOffsetRet
+		nJmpOffsetRetPos = nOffset-1;	// nOffsetRetが0の場合、最後に設定する
 	}
 	// Set Aspect 640x480(4:3)
 	buf[nOffset++] = 0xEC;														// MOV A,R4
@@ -707,11 +665,41 @@ L_x2Height:
 	buf[nOffset++] = 0xFA;														// MOV R2,A
 	buf[nOffset++] = 0x74;	buf[nOffset++] = 0x02;								// MOV A,#0x02
 	buf[nOffset++] = 0x75;	buf[nOffset++] = 0xF0;	buf[nOffset++] = 0x80;		// MOV B,#0x80
-	OutputAcerISTPTR(model, nOffset);											// LCALL ISTPTR
+	OutputISTPTR(model, nOffset);												// LCALL ISTPTR
 	buf[nOffset++] = 0x74;	buf[nOffset++] = 0xE0;								// MOV A,#0xE0
 	buf[nOffset++] = 0xFF;														// MOV R7,A
 	buf[nOffset++] = 0x74;	buf[nOffset++] = 0x01;								// MOV A,#0x01
 	buf[nOffset++] = 0xF9;														// MOV R1,A
+
+	if (0 < nJmpOffsetRetPos && nOffsetRet == 0) {
+		buf[nJmpOffsetRetPos] = nOffset - nJmpOffsetRetPos - 1;
+	}
+
+	return true;
+}
+
+// AcerのWide ModeメニューでAspect選択時の挙動を改造
+// mode==ModeModifyの場合、縦解像度が350未満の場合のみ強制4:3 それ以外は元の解像度比率を使用
+//       X68000の1024x848/1024x424モードでNot Supportになる不具合あり
+//       他にも縦横比が異常なプリセットで影響出る可能性あり
+// mode==ModeModify4x3の場合は常に4:3
+bool ModifyAcerWideModeFunction(enMode mode, enModel model)
+{
+	int nOffsetRet;
+	int nOffset = GetAspectFunctionOffset(model, nOffsetRet);
+	if (nOffset < 0) {
+		return false;
+	}
+
+	// 
+	buf[nOffset++] = 0xE9;														// MOV A,R1
+	buf[nOffset++] = 0xFC;														// MOV R4,A
+	buf[nOffset++] = 0xEA;														// MOV A,R2
+	buf[nOffset++] = 0xFD;														// MOV R5,A
+
+	if (!SetAcerWideModeFunction(mode, model, nOffset, nOffsetRet)) {
+		return false;
+	}
 
 	for ( ; nOffset<nOffsetRet; nOffset++) buf[nOffset] = 0x00;					// NOP
 
@@ -720,72 +708,103 @@ L_x2Height:
 	return true;
 }
 
-
-/**
-		同一周波数&VTotalのインタレースとプログレッシブを別々のプリセットで識別する試み
-		->同一周波数&VTotalで連続してインタレースとプログレッシブが切り替わってもコントローラが認識してくれない
-		  電源を入れなおすと正しく認識するが、使いどころ微妙
-*/
-void ModifyAcerEK2xxYCompareInterlace(enModel model)
+// 青ジャックiPad液晶など、Aspectモードを持たない液晶に機能を追加する(実験中)
+bool AddAspectMode(enMode mode, enModel model)
 {
-	int nOffset;
-	if (model == EK241YEbmix) {
-		nOffset = 0x4a304;
-	}
-	else if (model == EK271Ebmix) {
-		nOffset = 0x5c832;
-	}
-	else {
-		printf("Invlid model\n");
-		return;
-	}
+	int nOffset = 0x4BA00;
+	int nJMP4x3Pos, nJMP5x4Pos, nJMPRetPos, nSJMPISTPTRPos1, nSJMPISTPTRPos2;
 
-	buf[nOffset++]=0x90; buf[nOffset++]=0xe0; buf[nOffset++]=0x93;
-	buf[nOffset++]=0xef;
-	buf[nOffset++]=0xf0;
-	buf[nOffset++]=0x75; buf[nOffset++]=0xf0; buf[nOffset++]=0x13;
-	buf[nOffset++]=0xed;
-	buf[nOffset++]=0xa4;
-	buf[nOffset++]=0x24; buf[nOffset++]=0x05;
-	buf[nOffset++]=0xf5; buf[nOffset++]=0x82;
-	buf[nOffset++]=0xe5; buf[nOffset++]=0xf0;
-	buf[nOffset++]=0x34; buf[nOffset++]=0x26;
-	buf[nOffset++]=0xf5; buf[nOffset++]=0x83;
-	buf[nOffset++]=0xe4;
-	buf[nOffset++]=0x93;
-	buf[nOffset++]=0x54; buf[nOffset++]=0x40;
-	buf[nOffset++]=0xc4;
-	buf[nOffset++]=0x13;
-	buf[nOffset++]=0x54; buf[nOffset++]=0x07;
-	buf[nOffset++]=0x24; buf[nOffset++]=0xff;
-	buf[nOffset++]=0x92; buf[nOffset++]=0xf7;
-	buf[nOffset++]=0x90; buf[nOffset++]=0xe3; buf[nOffset++]=0xcc;	//
-	buf[nOffset++]=0xe0;
-	buf[nOffset++]=0x13;
-	buf[nOffset++]=0x13;
-	buf[nOffset++]=0x54; buf[nOffset++]=0x3f;
-	buf[nOffset++]=0x13;
-	buf[nOffset++]=0x30; buf[nOffset++]=0xf7; buf[nOffset++]=0x01;
-	buf[nOffset++]=0xb3;
-	buf[nOffset++]=0x40; buf[nOffset++]=0x06;
-	buf[nOffset++]=0xed;
-	if (model == EK241YEbmix) {
-		buf[nOffset++]=0x12; buf[nOffset++]=0x16; buf[nOffset++]=0x23;	// CSTPTR
-	}
-	else if (model == EK271Ebmix) {
-		buf[nOffset++]=0x12; buf[nOffset++]=0x15; buf[nOffset++]=0xCF;	// CSTPTR
-	}
-	buf[nOffset++]=0xd3;
-	buf[nOffset++]=0x22;
-	buf[nOffset++]=0xc3;
-	buf[nOffset++]=0x22;
+	// アスペクト比取得関数呼び出し先変更
+	buf[0x009E6] = 0xBA;
+	buf[0x009E7] = 0x00;
 
-	// CSTPTR
-	// BB 01 06 89 82 8A 83 F0 22 50 02 F7 22 BB FE 01 F3 22
+	// 引数1のｱﾄﾞﾚｽ？を退避 R3の値0x01	
+	buf[nOffset++] = 0xE9;														// MOV A,R1
+	buf[nOffset++] = 0xFC;														// MOV R4,A
+	buf[nOffset++] = 0xEA;														// MOV A,R2
+	buf[nOffset++] = 0xFD;														// MOV R5,A
 
-	printf("Compare interlace flag enable\n");
+	// R3,R2,R1を0xD716に退避
+	buf[nOffset++]=0x90;	buf[nOffset++]=0xd7;	buf[nOffset++]=0x16;		// MOV	DPTR,#0xd716
+	buf[nOffset++]=0xeb;														// MOV	A,R3
+	buf[nOffset++]=0xf0;														// MOVX	@DPTR=>DAT_EXTMEM_d716,A
+	buf[nOffset++]=0xa3;														// INC	DPTR
+	buf[nOffset++]=0xea;														// MOV	A,R2
+	buf[nOffset++]=0xf0;														// MOVX	@DPTR=>DAT_EXTMEM_d717,A
+	buf[nOffset++]=0xa3;														// INC	DPTR
+	buf[nOffset++]=0xe9;														// MOV	A,R1
+	buf[nOffset++]=0xf0;														// MOVX	@DPTR=>DAT_EXTMEM_d718,A
+
+	buf[nOffset++] = 0x90;	buf[nOffset++] = 0xD8;	buf[nOffset++] = 0x48;		// MOV DPTR,#0xD848 1=4:3 2=16:9 3=5:4
+	buf[nOffset++] = 0xE0;														// MOV A,DPTR
+	buf[nOffset++] = 0x54;	buf[nOffset++] = 0x07;								// ANL A,#0x7
+	buf[nOffset++] = 0x14;														// DEC A
+
+	buf[nOffset++]=0x60;	buf[nOffset++]=0x00;								// JZ	LAB_4x3
+	nJMP4x3Pos = nOffset-1;
+	buf[nOffset++]=0x24;	buf[nOffset++]=0xfe;								// ADD	A,#0xfe	
+	buf[nOffset++]=0x60;	buf[nOffset++]=0x00;								// JZ	LAB_5x4	
+	nJMP5x4Pos = nOffset-1;
+	buf[nOffset++]=0x04;														// INC	A	
+	buf[nOffset++]=0x70;	buf[nOffset++]=0x00;								// JNZ	LAB_RET	
+	nJMPRetPos = nOffset-1;
+	// Set 16:9
+	buf[nOffset++]=0x75;	buf[nOffset++]=0xf0;	buf[nOffset++]=0x10;		// MOV	B,#0x10	
+	buf[nOffset++]=0x12;	buf[nOffset++]=0x73;	buf[nOffset++]=0xfb;		// LCALL	FUN_Bank4__73fb	
+	buf[nOffset++]=0x75;	buf[nOffset++]=0xf0;	buf[nOffset++]=0x09;		// MOV	B,#0x9	
+	buf[nOffset++]=0x80;	buf[nOffset++]=0x00;								// SJMP	LAB_ISTPTR	
+	nSJMPISTPTRPos1 = nOffset-1;
+
+	// LAB_4x3 Set 4:3
+	buf[nJMP4x3Pos] = nOffset-nJMP4x3Pos-1;
+#if 0	// Original Code
+	buf[nOffset++]=0x75;	buf[nOffset++]=0xf0;	buf[nOffset++]=0x04;		// MOV	B,#0x4	
+	buf[nOffset++]=0x12;	buf[nOffset++]=0x73;	buf[nOffset++]=0xfb;		// LCALL	FUN_Bank4__73fb	
+	buf[nOffset++]=0x75;	buf[nOffset++]=0xf0;	buf[nOffset++]=0x03;		// MOV	B,#0x3	
+	buf[nOffset++]=0x80;	buf[nOffset++]=0x0f;								// SJMP	LAB_ISTPTR	
+	nSJMPISTPTRPos2 = nOffset-1;
+#else
+	if (!SetAcerWideModeFunction(mode, model, nOffset, 0)) {					
+		return false;
+	}
+	// set V
+	buf[nOffset++]=0x90;	buf[nOffset++]=0xD7;	buf[nOffset++]=0x19;		// MOV	 DPTR,#0xD719
+	buf[nOffset++]=0xe0;														// MOVX	A,@DPTR
+	buf[nOffset++]=0xfb;														// MOV	 R3,A
+	buf[nOffset++]=0xa3;														// INC	 DPTR
+	buf[nOffset++]=0xe0;														// MOVX	A,@DPTR
+	buf[nOffset++]=0xfa;														// MOV	 R2,A
+	buf[nOffset++]=0xa3;														// INC	 DPTR
+	buf[nOffset++]=0xe0;														// MOVX	A,@DPTR
+	buf[nOffset++]=0xc9;														// XCH	 A,R1
+	buf[nOffset++]=0x8f;	buf[nOffset++]=0xf0;								// MOV	 B,R7
+	buf[nOffset++]=0x80;	buf[nOffset++]=0x00;								// SJMP	LAB_ISTPTR	
+	nSJMPISTPTRPos2 = nOffset-1;
+#endif
+
+	// LAB_5x4 Set 5:4		
+	buf[nJMP5x4Pos] = nOffset-nJMP5x4Pos-1;
+	buf[nOffset++]=0x90;	buf[nOffset++]=0xd7;	buf[nOffset++]=0x16;		// MOV	DPTR,#0xd716	
+	buf[nOffset++]=0x12;	buf[nOffset++]=0x74;	buf[nOffset++]=0x0d;		// LCALL	FUN_Bank4__740d	
+	buf[nOffset++]=0x75;	buf[nOffset++]=0xf0;	buf[nOffset++]=0x05;		// MOV	B,#0x5	
+	buf[nOffset++]=0x12;	buf[nOffset++]=0x74;	buf[nOffset++]=0x07;		// LCALL	FUN_Bank4__7407	
+	buf[nOffset++]=0x75;	buf[nOffset++]=0xf0;	buf[nOffset++]=0x04;		// MOV	B,#0x4	
+
+	// LAB_ISTPTR
+	buf[nSJMPISTPTRPos1] = nOffset-nSJMPISTPTRPos1-1;
+	buf[nSJMPISTPTRPos2] = nOffset-nSJMPISTPTRPos2-1;
+	OutputISTPTR(model, nOffset);												// LCALL ISTPTR
+	
+	// LAB_RET
+	buf[nJMPRetPos] = nOffset-nJMPRetPos-1;
+	buf[nOffset++]=0x22;														// RET		
+
+
+
+	printf("Add %s aspect ratio mode\n", mode == ModeModify4x3 ? "force 4:3" : "original" );
+
+	return true;
 }
-
 
 int RTD2662ModeTableDump(
 const char	*szPath,	//!< i	:
@@ -1022,22 +1041,37 @@ enMode		nMode		//!< i	:0=Dump 1=Modify 2=Modify4x3 -1=CheckOnly
 			model = KA222Q;
 			// プリセットテーブルはP2314Hとほぼ同じ
 			break;
+		case 0x528EC:	// Acer EK221QE3bi tomo_retro氏
+			printf("Acer EK221QE3bi\n");
+			model = EK221QE3bi;
+			// プリセットテーブルはP2314Hとほぼ同じ
+			break;
 		}
 	}
 	if (model == UNKNOWN) {
 		fprintf(stderr, "unknown firmware nModeTableStart=%X\n", nModeTableStart);
 	}
 	
-	if ((nMode == ModeModify || nMode == ModeModify4x3) && model != UNKNOWN && model != RTD2668) {
+	if ((nMode == ModeModify || nMode == ModeModify4x3 || nMode == ModeModifyExp) && 
+		model != UNKNOWN && model != RTD2668) {
 
 #if 1
 		if (model == EK271Ebmix || model == EK241YEbmix || model == QG221QHbmiix || 
-			model == C24M2020DJP || model == KA222Q) {
+			model == C24M2020DJP || model == KA222Q || model == EK221QE3bi) {
 			if (DisableAcerAspectChangeCheck(model)) {
-				ModifyAcerWideModeFunction(nMode, model);
+				if (!ModifyAcerWideModeFunction(nMode, model)) {
+					fprintf(stderr, "Fail modify acer wide mode function\n");
+					goto L_FREE;
+				}
 			}
 			else {
-				fprintf(stderr, "can't modify acer aspect function\n");
+				fprintf(stderr, "Can't modify acer aspect function\n");
+			}
+		}
+		else if (nMode == ModeModifyExp && model == LHRD56_IPAD97) {
+			if (!AddAspectMode(nMode, model)) {
+				fprintf(stderr, "Fail add aspect mode\n");
+				goto L_FREE;
 			}
 		}
 

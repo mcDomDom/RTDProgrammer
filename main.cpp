@@ -399,7 +399,7 @@ static bool ShouldProgramPage(uint8_t* buffer, uint32_t size)
     return false;
 }
 
-bool ProgramFlash(const char *input_file_name, uint32_t chip_size, enModel model, int wp = -1, int force_size = -1)
+bool ProgramFlash(const char *input_file_name, uint32_t chip_size, enModel model, int wp = -1, bool bBruteWP = false)
 {
 	char buf[1024];
     uint32_t prog_size;
@@ -408,9 +408,13 @@ bool ProgramFlash(const char *input_file_name, uint32_t chip_size, enModel model
     {
         return false;
     }
-    if (0 <= force_size) {
-	    prog_size = force_size;
-	    chip_size = force_size;
+    if (bBruteWP) {
+	    prog_size = 512;
+	    chip_size = 512;
+		prog[0x07] = 0xDE;
+		prog[0x08] = 0xAD;
+		prog[0x09] = 0xBE;
+		prog[0x0A] = 0xEF;
 	}
 
     memset(buf, 0xFF, sizeof(buf));
@@ -427,7 +431,8 @@ bool ProgramFlash(const char *input_file_name, uint32_t chip_size, enModel model
 	else if (model == PHI_252B9) {
 		reg = 0x28;
 	}
-	else if (model == EK241YEbmix || model == EK271Ebmix || model == QG221QHbmiix || model == C24M2020DJP || model == KA222Q) {
+	else if (model == EK241YEbmix || model == EK271Ebmix || model == QG221QHbmiix || 
+			 model == C24M2020DJP || model == KA222Q || model == EK221QE3bi) {
 		reg = 0x1D;
 	}
 	if (0 <= wp) reg = wp;
@@ -557,12 +562,17 @@ int main(int argc, char* argv[])
         RTD2662ModeTableDump(argv[2], ModeDump);
         goto L_RET;
     }
-    else if (strcmp(argv[1], "-modify")==0) {
+    else if (strcmp(argv[1], "-modify")==0 ||
+			 strcmp(argv[1], "-modify2")==0) {
         RTD2662ModeTableDump(argv[2], ModeModify);
         goto L_RET;
     }
     else if (strcmp(argv[1], "-modify4x3")==0) {
         RTD2662ModeTableDump(argv[2], ModeModify4x3);
+        goto L_RET;
+    }
+    else if (strcmp(argv[1], "-modifyexp")==0) {
+        RTD2662ModeTableDump(argv[2], ModeModifyExp);
         goto L_RET;
     }
     if (4 <= argc) {
@@ -642,7 +652,7 @@ int main(int argc, char* argv[])
         printf("ProgramFlash %s size=%d(kbyte)\n", argv[2], size/1024);
 		if (5 <= argc && strcmp(argv[4], "-brutewp") == 0) {
 			for (i=0; i<256; i++) {
-				bRet = ProgramFlash(argv[2], size, (enModel)nRet, i, 512);
+				bRet = ProgramFlash(argv[2], size, (enModel)nRet, i, true);
 				if (bRet) {
 					wp = i;
 					printf("*** Use wp=%02X ***\n", wp);
