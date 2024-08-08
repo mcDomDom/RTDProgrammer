@@ -42,7 +42,8 @@ enum enModel
 	C24M2020DJP,		// Amazon C24M2020DJP ‚¦‚­‚µ‚Ñî•ñ’ñ‹Ÿ‚ ‚è‚ª‚Æ‚¤‚²‚´‚¢‚Ü‚·
 	CZ617Ph,			// Cocoper CZ-617Ph ‚Ó‚ä‚«î•ñ’ñ‹Ÿ‚ ‚è‚ª‚Æ‚¤‚²‚´‚¢‚Ü‚·
 	KA222Q,				// Acer KA222Q CAT-2î•ñ’ñ‹Ÿ‚ ‚è‚ª‚Æ‚¤‚²‚´‚¢‚Ü‚·
-	EK221QE3bi			// Acer EK221QE3bi tomo_retroî•ñ’ñ‹Ÿ‚ ‚è‚ª‚Æ‚¤‚²‚´‚¢‚Ü‚·
+	EK221QE3bi,			// Acer EK221QE3bi tomo_retroî•ñ’ñ‹Ÿ‚ ‚è‚ª‚Æ‚¤‚²‚´‚¢‚Ü‚·
+	Cocoper133			// Cocoper 13.3 ƒCƒJæ¶î•ñ’ñ‹Ÿ‚ ‚è‚ª‚Æ‚¤‚²‚´‚¢‚Ü‚·
 };
 
 enum enMode

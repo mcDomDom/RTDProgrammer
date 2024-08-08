@@ -1046,6 +1046,10 @@ enMode		nMode		//!< i	:0=Dump 1=Modify 2=Modify4x3 -1=CheckOnly
 			model = EK221QE3bi;
 			// プリセットテーブルはP2314Hとほぼ同じ
 			break;
+		case 0x2313C:	// Cocoper 13.3 イカ先生氏
+			printf("Cocoper 13.3\n");
+			model = Cocoper133;
+			break;
 		}
 	}
 	if (model == UNKNOWN) {
