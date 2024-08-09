@@ -201,6 +201,9 @@ void PrintManufacturer(uint32_t id)
     case 0x85:
        printf("Puya");
         break; 
+    case 0x7F:
+       printf("PM");
+        break; 
     default:
         printf("Unknown");
         break;
@@ -257,6 +260,7 @@ void SetupChipCommands(uint32_t jedec_id)
     case 0x85:
 	case 0x20:
 	case 0x51:
+    case 0x7F:
         // These are the codes for Winbond
         WriteReg(0x62, 0x06); // Flash Write enable op code
         WriteReg(0x63, 0x50); // Flash Write register op code
