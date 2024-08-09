@@ -64,6 +64,7 @@ static const FlashDesc FlashDevices[] =
     {"SST25VF032", 0xBF4A00, 4 * 1024,       256, 32},
     // PMC
     {"PM25LQ010B", 0x7F9D21,       128,       256, 64},
+	{"PM25LD020", 0x7f9d22,		256,	256, 64},
     // FM
     {"FM25F04", 0xA14013,    512,       256, 64},
     {"FM25Q08", 0xA14014,    1024,      256, 64},

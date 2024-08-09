@@ -43,7 +43,8 @@ enum enModel
 	CZ617Ph,			// Cocoper CZ-617Ph ふゆき氏情報提供ありがとうございます
 	KA222Q,				// Acer KA222Q CAT-2氏情報提供ありがとうございます
 	EK221QE3bi,			// Acer EK221QE3bi tomo_retro氏情報提供ありがとうございます
-	Cocoper133			// Cocoper 13.3 イカ先生氏情報提供ありがとうございます
+	Cocoper133,			// Cocoper 13.3 イカ先生氏情報提供ありがとうございます
+	X2377HS				// iiyama X2377HS KAPPY.氏情報提供ありがとうございます
 };
 
 enum enMode

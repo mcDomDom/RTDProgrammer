@@ -1050,6 +1050,11 @@ enMode		nMode		//!< i	:0=Dump 1=Modify 2=Modify4x3 -1=CheckOnly
 			printf("Cocoper 13.3\n");
 			model = Cocoper133;
 			break;
+		case 0x00050:	// iiyama X2377HS KAPPY.Ž
+			printf("iiyama X2377HS\n");
+			model = X2377HS;
+			nIdxNo[X68_FZ24K] = 43;		// 43:1152x900 61.8KHz/66Hz
+			break;
 		}
 	}
 	if (model == UNKNOWN) {
@@ -1079,7 +1084,7 @@ enMode		nMode		//!< i	:0=Dump 1=Modify 2=Modify4x3 -1=CheckOnly
 			}
 		}
 
-		if (model != PCB800099) {
+		if (model != PCB800099 && model != X2377HS) {
 			bModify = ModifyFirmware(model);
 			if (bModify) {
 				printf("*** modify firmware success ***\n");
