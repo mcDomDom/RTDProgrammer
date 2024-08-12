@@ -41,6 +41,7 @@ enum enModel
 	EK241YEbmix,		// Acer EK241YEbmix KAPPY.Žî•ñ’ñ‹Ÿ‚ ‚è‚ª‚Æ‚¤‚²‚´‚¢‚Ü‚·
 	QG221QHbmiix,		// Acer QG221QHbmiix KAPPY.Žî•ñ’ñ‹Ÿ‚ ‚è‚ª‚Æ‚¤‚²‚´‚¢‚Ü‚·
 	C24M2020DJP,		// Amazon C24M2020DJP ‚¦‚­‚µ‚ÑŽî•ñ’ñ‹Ÿ‚ ‚è‚ª‚Æ‚¤‚²‚´‚¢‚Ü‚·
+	C27M2020DJP,		// Amazon C27M2020DJP ‚Ý‚äŽî•ñ’ñ‹Ÿ‚ ‚è‚ª‚Æ‚¤‚²‚´‚¢‚Ü‚·
 	CZ617Ph,			// Cocoper CZ-617Ph ‚Ó‚ä‚«Žî•ñ’ñ‹Ÿ‚ ‚è‚ª‚Æ‚¤‚²‚´‚¢‚Ü‚·
 	KA222Q,				// Acer KA222Q CAT-2Žî•ñ’ñ‹Ÿ‚ ‚è‚ª‚Æ‚¤‚²‚´‚¢‚Ü‚·
 	EK221QE3bi,			// Acer EK221QE3bi tomo_retroŽî•ñ’ñ‹Ÿ‚ ‚è‚ª‚Æ‚¤‚²‚´‚¢‚Ü‚·

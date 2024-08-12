@@ -500,6 +500,11 @@ enMode		nMode		//!< i	:0=Dump 1=Modify 2=Modify4x3 -1=CheckOnly
 			model = C24M2020DJP;
 			// プリセットテーブルはP2314Hとほぼ同じ
 			break;
+		case 0x227BC:	// Amazon C27M2020DJP みゆ氏
+			printf("Amazon C27M2020DJP\n");
+			model = C27M2020DJP;
+			// プリセットテーブルはP2314Hとほぼ同じ
+			break;
 		case 0x134DB:	// Cocoper CZ-617Ph zinfyk氏
 			printf("Cocoper CZ-617Ph\n");
 			model = CZ617Ph;
@@ -540,7 +545,7 @@ enMode		nMode		//!< i	:0=Dump 1=Modify 2=Modify4x3 -1=CheckOnly
 
 #if 1
 		if (model == EK271Ebmix || model == EK241YEbmix || model == QG221QHbmiix || 
-			model == C24M2020DJP || model == KA222Q || model == EK221QE3bi) {
+			model == C24M2020DJP || model == C27M2020DJP || model == KA222Q || model == EK221QE3bi) {
 			if (DisableAcerAspectChangeCheck(model)) {
 				if (!ModifyAcerWideModeFunction(nMode, model)) {
 					fprintf(stderr, "Fail modify acer wide mode function\n");

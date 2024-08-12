@@ -201,6 +201,10 @@ bool DisableAcerAspectChangeCheck(enModel model)
 		nOffset[0] = 0x3d58a;
 		nOffset[1] = 0x3d5cb;
 	}
+	else if (model == C27M2020DJP) {
+		nOffset[0] = 0x3d590;
+		nOffset[1] = 0x3d5d1;
+	}
 	else if (model == KA222Q) {
 		nOffset[0] = 0x1d693;
 		nOffset[1] = 0x1d6d4;
@@ -245,6 +249,9 @@ void OutputISTPTR(enModel model, int &nOffset)
 	else if (model == C24M2020DJP) {
 		buf[nOffset++] = 0x12;	buf[nOffset++] = 0x15;	buf[nOffset++] = 0xD9;
 	}
+	else if (model == C27M2020DJP) {
+		buf[nOffset++] = 0x12;	buf[nOffset++] = 0x15;	buf[nOffset++] = 0xCD;
+	}
 	else if (model == KA222Q) {
 		buf[nOffset++] = 0x12;	buf[nOffset++] = 0x12;	buf[nOffset++] = 0xCF;
 	}
@@ -279,6 +286,10 @@ int GetAspectFunctionOffset(enModel model, int &nOffsetRet)
 		nOffset = 0x5e746;
 		nOffsetRet = 0x5e78f;
 	}
+	else if (model == C27M2020DJP) {
+		nOffset = 0x5e6f2;
+		nOffsetRet = 0x5e73b;
+	}
 	else if (model == KA222Q) {
 		nOffset = 0x1eff8;
 		nOffsetRet = 0x1f041;
@@ -308,7 +319,7 @@ bool SetAcerWideModeFunction(enMode mode, enModel model, int &nOffset, int nOffs
 	else if (model == QG221QHbmiix) {
 		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE4;	buf[nOffset++] = 0xB8;	// MOV DPTR,Input Width
 	}
-	else if (model == C24M2020DJP) {
+	else if (model == C24M2020DJP || model == C27M2020DJP) {
 		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE5;	buf[nOffset++] = 0x69;	// MOV DPTR,Input Width
 	}
 	else if (model == KA222Q) {
@@ -340,7 +351,7 @@ bool SetAcerWideModeFunction(enMode mode, enModel model, int &nOffset, int nOffs
 	else if (model == QG221QHbmiix) {
 		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE4;	buf[nOffset++] = 0xC4;	// MOV DPTR,Input Height
 	}
-	else if (model == C24M2020DJP) {
+	else if (model == C24M2020DJP || model == C27M2020DJP) {
 		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE5;	buf[nOffset++] = 0x75;	// MOV DPTR,Input Height
 	}
 	else if (model == KA222Q) {
@@ -370,7 +381,7 @@ bool SetAcerWideModeFunction(enMode mode, enModel model, int &nOffset, int nOffs
 	else  if (model == QG221QHbmiix) {
 		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE4;	buf[nOffset++] = 0x4C;	// MOV DPTR,Interlace Flag
 	}
-	else  if (model == C24M2020DJP) {
+	else  if (model == C24M2020DJP || model == C27M2020DJP) {
 		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE5;	buf[nOffset++] = 0x35;	// MOV DPTR,Interlace Flag
 	}
 	else  if (model == KA222Q) {
@@ -393,7 +404,7 @@ bool SetAcerWideModeFunction(enMode mode, enModel model, int &nOffset, int nOffs
 	else if (model == EK271Ebmix) {
 		buf[nOffset++] = 0x12;	buf[nOffset++] = 0xE7;	buf[nOffset++] = 0x9B;	// LCALL CheckInterlaceFlag
 	}
-	else if (model == QG221QHbmiix || model == C24M2020DJP || model == KA222Q ||
+	else if (model == QG221QHbmiix || model == C24M2020DJP || model == C27M2020DJP || model == KA222Q ||
 			 model == LHRD56_IPAD97 || model == CB272Ebmiprx) {
 		// CheckInterlaceFlag‚ª“WŠJ‚³‚ê‚Ä‚¢‚é
 		buf[nOffset++] = 0x13;													// RRC
