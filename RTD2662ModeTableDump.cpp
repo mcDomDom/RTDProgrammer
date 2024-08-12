@@ -354,9 +354,15 @@ enMode		nMode		//!< i	:0=Dump 1=Modify 2=Modify4x3 -1=CheckOnly
 	if (model == UNKNOWN) {
 		// ÓÃÞÙŽ©“®”»’è ModeTableŠJŽnˆÊ’u‚©‚ç”»’è ’†‰Ø‰t»Šî”Â‚Å‚ÍÌ§°Ñ³ª±‚ª•p”É‚É•Ï‚í‚é‚©‚ç‚ ‚Ü‚èˆÓ–¡‚È‚µ
 		switch (nModeTableStart) {
-		case 0x200A:	// P2214H/P2314H
-			printf("DELL P2214H/P2314H\n");
-			model = P2314H;
+		case 0x200A:	// P2214H/P2314H/E1715S
+			if (strstr(szPath, "E1715S")) {	// E1715S‚ÍÌ§²Ù–¼‚Å”»’è
+				printf("DELL E1715S\n");
+				model = E1715S;
+			}
+			else {
+				printf("DELL P2214H/P2314H\n");
+				model = P2314H;
+			}
 			break;
 		case 0x32A74:	// 252B9
 			printf("PHILIPS 252B9/11\n");
@@ -552,9 +558,14 @@ enMode		nMode		//!< i	:0=Dump 1=Modify 2=Modify4x3 -1=CheckOnly
 			}
 		}
 		else if (nMode == ModeModifyExp && model == CB272Ebmiprx) {
-			if (!AddGetAspectRatioFunc(nMode, model)) {
-				fprintf(stderr, "Fail add get aspect func\n");
-				goto L_FREE;
+			if (DisableAcerAspectChangeCheck(model)) {
+				if (!AddGetAspectRatioFunc(nMode, model)) {
+					fprintf(stderr, "Fail add get aspect func\n");
+					goto L_FREE;
+				}
+			}
+			else {
+				fprintf(stderr, "Can't modify acer aspect function\n");
 			}
 		}
 

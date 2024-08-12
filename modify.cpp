@@ -69,6 +69,15 @@ bool ModifyFirmware(enModel model)
 		printf("Skip VHeightCheck\n");
 		nPosVHeightCheck = -1;
 	}
+	else if (model == E1715S) {
+		BYTE	keyVHeightCheck[] = {0xC3, 0xE5, 0x59, 0x94, 0xF0};
+		nPosVHeightCheck = FindKey(keyVHeightCheck, 5);
+		if (nPosVHeightCheck < 0) {
+			fprintf(stderr, "keyVHeightCheck not find\n");
+			goto L_RET;
+		}
+		nOfsVHeightCheck = 4;
+	}
 	else {
 		nPosVHeightCheck = FindKey(keyVHeightCheck, 6);
 		if (nPosVHeightCheck < 0) {

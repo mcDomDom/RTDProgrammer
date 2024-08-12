@@ -47,6 +47,7 @@ enum enModel
 	Cocoper133,			// Cocoper 13.3 ƒCƒJæ¶î•ñ’ñ‹Ÿ‚ ‚è‚ª‚Æ‚¤‚²‚´‚¢‚Ü‚·
 	X2377HS,			// iiyama X2377HS KAPPY.î•ñ’ñ‹Ÿ‚ ‚è‚ª‚Æ‚¤‚²‚´‚¢‚Ü‚·
 	CB272Ebmiprx,		// Acer CB272Ebmiprx AKTî•ñ’ñ‹Ÿ‚ ‚è‚ª‚Æ‚¤‚²‚´‚¢‚Ü‚·
+	E1715S,				// DELL E1715S tsutsuiî•ñ’ñ‹Ÿ‚ ‚è‚ª‚Æ‚¤‚²‚´‚¢‚Ü‚·
 };
 
 enum enMode
