@@ -11,6 +11,7 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <stdint.h>
 
 #ifdef WIN32
 #include <WinSock.h>
@@ -44,7 +45,8 @@ enum enModel
 	KA222Q,				// Acer KA222Q CAT-2î•ñ’ñ‹Ÿ‚ ‚è‚ª‚Æ‚¤‚²‚´‚¢‚Ü‚·
 	EK221QE3bi,			// Acer EK221QE3bi tomo_retroî•ñ’ñ‹Ÿ‚ ‚è‚ª‚Æ‚¤‚²‚´‚¢‚Ü‚·
 	Cocoper133,			// Cocoper 13.3 ƒCƒJæ¶î•ñ’ñ‹Ÿ‚ ‚è‚ª‚Æ‚¤‚²‚´‚¢‚Ü‚·
-	X2377HS				// iiyama X2377HS KAPPY.î•ñ’ñ‹Ÿ‚ ‚è‚ª‚Æ‚¤‚²‚´‚¢‚Ü‚·
+	X2377HS,			// iiyama X2377HS KAPPY.î•ñ’ñ‹Ÿ‚ ‚è‚ª‚Æ‚¤‚²‚´‚¢‚Ü‚·
+	CB272Ebmiprx,		// Acer CB272Ebmiprx AKTî•ñ’ñ‹Ÿ‚ ‚è‚ª‚Æ‚¤‚²‚´‚¢‚Ü‚·
 };
 
 enum enMode

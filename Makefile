@@ -40,9 +40,9 @@ OBJDIR_DEBUG = .objs
 DEP_DEBUG = 
 OUT_DEBUG = rtd2660
 
-OBJ_RELEASE = $(OBJDIR_RELEASE)/RTD2662ModeTableDump.o $(OBJDIR_RELEASE)/crc.o $(OBJDIR_RELEASE)/gff.o $(OBJDIR_RELEASE)/i2c.o $(OBJDIR_RELEASE)/main.o
+OBJ_RELEASE = $(OBJDIR_RELEASE)/RTD2662ModeTableDump.o $(OBJDIR_RELEASE)/crc.o $(OBJDIR_RELEASE)/gff.o $(OBJDIR_RELEASE)/i2c.o $(OBJDIR_RELEASE)/modify.o $(OBJDIR_RELEASE)/main.o
 
-OBJ_DEBUG = $(OBJDIR_DEBUG)/RTD2662ModeTableDump.o $(OBJDIR_DEBUG)/crc.o $(OBJDIR_DEBUG)/gff.o $(OBJDIR_DEBUG)/i2c.o $(OBJDIR_DEBUG)/main.o
+OBJ_DEBUG = $(OBJDIR_DEBUG)/RTD2662ModeTableDump.o $(OBJDIR_DEBUG)/crc.o $(OBJDIR_DEBUG)/gff.o $(OBJDIR_DEBUG)/i2c.o $(OBJDIR_DEBUG)/modify.o $(OBJDIR_DEBUG)/main.o
 
 all: release debug
 
@@ -69,6 +69,9 @@ $(OBJDIR_RELEASE)/gff.o: gff.cpp
 
 $(OBJDIR_RELEASE)/i2c.o: i2c.cpp
 	$(CXX) $(CFLAGS_RELEASE) $(INC_RELEASE) -c i2c.cpp -o $(OBJDIR_RELEASE)/i2c.o
+
+$(OBJDIR_RELEASE)/modify.o: modify.cpp
+	$(CXX) $(CFLAGS_RELEASE) $(INC_RELEASE) -c modify.cpp -o $(OBJDIR_RELEASE)/modify.o
 
 $(OBJDIR_RELEASE)/main.o: main.cpp
 	$(CXX) $(CFLAGS_RELEASE) $(INC_RELEASE) -c main.cpp -o $(OBJDIR_RELEASE)/main.o
@@ -98,6 +101,9 @@ $(OBJDIR_DEBUG)/gff.o: gff.cpp
 
 $(OBJDIR_DEBUG)/i2c.o: i2c.cpp
 	$(CXX) $(CFLAGS_DEBUG) $(INC_DEBUG) -c i2c.cpp -o $(OBJDIR_DEBUG)/i2c.o
+
+$(OBJDIR_DEBUG)/modify.o: modify.cpp
+	$(CXX) $(CFLAGS_DEBUG) $(INC_DEBUG) -c modify.cpp -o $(OBJDIR_DEBUG)/modify.o
 
 $(OBJDIR_DEBUG)/main.o: main.cpp
 	$(CXX) $(CFLAGS_DEBUG) $(INC_DEBUG) -c main.cpp -o $(OBJDIR_DEBUG)/main.o
