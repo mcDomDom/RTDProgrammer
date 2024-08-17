@@ -619,6 +619,11 @@ enMode		nMode		//!< i	:0=Dump 1=Modify 2=Modify4x3 -1=CheckOnly
 		SetParameter<T_Info>(nIdxNo[FMT_Raiden],	0x0F,  768, 512, 323, 603, 3, 3, 1104, 536, 240, 19);		// TOWNS 雷電伝説
 		SetParameter<T_Info>(nIdxNo[M72_RTYPE],		0x0F,  768, 256, 157, 550, 5, 5, 1024, 284, 156, 24);		// R-TYPE基板 15.7KHz/55Hz KAPPY.さん提供
 		SetParameter<T_Info>(nIdxNo[FMT_LINUX],		0x0F,  768, 512, 311, 579, 3, 3,  920, 538, 138, 26);		// TOWNS LINUXコンソール プーさん提供
+
+		if (model == X2377HS) {
+			SetParameter<T_Info>(nIdxNo[87],		0x0F,  644, 240, 157, 600, 5, 5,  760, 262,  98, 20);		// Generic 240p
+			SetParameter<T_Info>(nIdxNo[139],		0x0F,  648, 240, 157, 600, 5, 5,  760, 262,  98, 20);		// Generic 240p
+		}
 		if (bModify || model == PCB800099 ) {
 
 			// PCB800099(RTD2660/2662)以外は水平同期信号幅のﾁｪｯｸを外さないと下記ﾌﾟﾘｾｯﾄは映らない
