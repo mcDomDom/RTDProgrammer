@@ -11,11 +11,13 @@
 extern BYTE *buf;
 extern int nFileLen;
 
-int FindKey(BYTE key[], int nKeyLen)
+int FindKey(BYTE key[], int nKeyLen, int nStartPos=0, int nEndPos=0)
 {
 	int nRet = -1;
 
-	for (int i=0; i<nFileLen-nKeyLen; i++) {
+	if (nEndPos == 0) nEndPos = nFileLen;
+
+	for (int i=nStartPos; i<nEndPos-nKeyLen; i++) {
 		if (memcmp(&buf[i], key, nKeyLen) == 0) {
 			nRet = i;
 			break;
@@ -50,7 +52,7 @@ bool ModifyFirmware(enModel model)
 	}
 
 	nPosVHeightCheck2 = -1;
-	if (model == P2314H) {	// P2214H/P2314Hはこちら
+	if (model == P2214H || model == P2314H) {	// P2214H/P2314Hはこちら
 		BYTE	keyVHeightCheck1[] = {0xC3, 0xE5, 0x5A, 0x94, 0xF0};
 		BYTE	keyVHeightCheck2[] = {0xC3, 0xE5, 0x56, 0x94, 0xEF};
 		nPosVHeightCheck = FindKey(keyVHeightCheck1, 5);
@@ -308,9 +310,46 @@ int GetAspectFunctionOffset(enModel model, int &nOffsetRet)
 	return nOffset;
 }
 
-bool SetAcerWideModeFunction(enMode mode, enModel model, int &nOffset, int nOffsetRet)
+bool OutputMovDPTRInputVHeight(enModel model, int &nOffset)
 {
-	int nJmpOffsetRetPos = -1;
+	if (model == EK241YEbmix || model == EK271Ebmix || model == EK221QE3bi) {
+		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE3;	buf[nOffset++] = 0xDD;	// MOV DPTR,Input Height
+	}
+	else if (model == QG221QHbmiix) {
+		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE4;	buf[nOffset++] = 0xC4;	// MOV DPTR,Input Height
+	}
+	else if (model == C24M2020DJP || model == C27M2020DJP) {
+		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE5;	buf[nOffset++] = 0x75;	// MOV DPTR,Input Height
+	}
+	else if (model == KA222Q) {
+		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE4;	buf[nOffset++] = 0x1E;	// MOV DPTR,Input Height
+	}
+	else if (model == LHRD56_IPAD97) {
+		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xD8;	buf[nOffset++] = 0xBA;	// MOV DPTR,Input Height
+	}
+	else if (model == CB272Ebmiprx) {
+		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE4;	buf[nOffset++] = 0x03;	// MOV DPTR,Input Height
+	}
+	else {
+		printf("code not implemented\n");
+		return false;
+	}
+
+	return true;
+}
+
+// 指定オフセット位置にAspect指定時の処理関数を設定
+bool SetAcerWideModeFunction(enMode mode, enModel model, int &nOffset, int nOffsetRet, bool bBackupR1R2)
+{
+	int nJmpOffsetRetPos = -1, nJmpOffsetSetAspect640x480 = -1;
+
+	if (bBackupR1R2) {
+		// R1,R2を退避
+		buf[nOffset++] = 0xE9;													// MOV A,R1
+		buf[nOffset++] = 0xFC;													// MOV R4,A
+		buf[nOffset++] = 0xEA;													// MOV A,R2
+		buf[nOffset++] = 0xFD;													// MOV R5,A
+	}
 
 	// Input Width
 	if (model == EK241YEbmix || model == EK271Ebmix || model == EK221QE3bi) {
@@ -345,26 +384,7 @@ bool SetAcerWideModeFunction(enMode mode, enModel model, int &nOffset, int nOffs
 	OutputISTPTR(model, nOffset);												// LCALL ISTPTR
 
 	// Input Height
-	if (model == EK241YEbmix || model == EK271Ebmix || model == EK221QE3bi) {
-		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE3;	buf[nOffset++] = 0xDD;	// MOV DPTR,Input Height
-	}
-	else if (model == QG221QHbmiix) {
-		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE4;	buf[nOffset++] = 0xC4;	// MOV DPTR,Input Height
-	}
-	else if (model == C24M2020DJP || model == C27M2020DJP) {
-		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE5;	buf[nOffset++] = 0x75;	// MOV DPTR,Input Height
-	}
-	else if (model == KA222Q) {
-		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE4;	buf[nOffset++] = 0x1E;	// MOV DPTR,Input Height
-	}
-	else if (model == LHRD56_IPAD97) {
-		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xD8;	buf[nOffset++] = 0xBA;	// MOV DPTR,Input Height
-	}
-	else if (model == CB272Ebmiprx) {
-		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE4;	buf[nOffset++] = 0x03;	// MOV DPTR,Input Height
-	}
-	else {
-		printf("code not implemented\n");
+	if (!OutputMovDPTRInputVHeight(model, nOffset)) {							// MOV DPTR,Input Height
 		return false;
 	}
 	// Set Input Height to R1/R7
@@ -373,6 +393,15 @@ bool SetAcerWideModeFunction(enMode mode, enModel model, int &nOffset, int nOffs
 	buf[nOffset++] = 0xA3;														// INC DPTR
 	buf[nOffset++] = 0xE0;														// MOVX A,@DPTR
 	buf[nOffset++] = 0xFF;														// MOV R7,A
+
+	// AddAspectModeForAcerの場合のみ1024x424を4:3として処理
+	if (mode == ModeModifyExp) {
+		// Check VHeight 424
+		buf[nOffset++] = 0xB9;	buf[nOffset++] = 0x01;	buf[nOffset++] = 0x05;	// CJNE	 R1,#0x01,0x05
+		buf[nOffset++] = 0xBF;	buf[nOffset++] = 0xA8;	buf[nOffset++] = 0x02;	// CJNE	 R7,#0xA8,0x02
+		buf[nOffset++] = 0x80;	buf[nOffset++] = 0x00;							// SJMP	 Set Aspect 640x480
+		nJmpOffsetSetAspect640x480 = nOffset-1;
+	}
 
 	// Check Interlace Flag?
 	if (model == EK241YEbmix || model == EK271Ebmix || model == EK221QE3bi) {
@@ -398,20 +427,20 @@ bool SetAcerWideModeFunction(enMode mode, enModel model, int &nOffset, int nOffs
 		return false;
 	}
 	buf[nOffset++] = 0xE0;														// MOVX A,@DPTR
-	if (model == EK241YEbmix) {
-		buf[nOffset++] = 0x12;	buf[nOffset++] = 0xE0;	buf[nOffset++] = 0xF5;	// LCALL CheckInterlaceFlag
-	}
-	else if (model == EK271Ebmix) {
-		buf[nOffset++] = 0x12;	buf[nOffset++] = 0xE7;	buf[nOffset++] = 0x9B;	// LCALL CheckInterlaceFlag
-	}
-	else if (model == QG221QHbmiix || model == C24M2020DJP || model == C27M2020DJP || model == KA222Q ||
-			 model == LHRD56_IPAD97 || model == CB272Ebmiprx) {
+	if (mode == ModeModifyExp || 
+		(model == QG221QHbmiix || model == C24M2020DJP || model == C27M2020DJP || model == KA222Q || model == LHRD56_IPAD97 || model == CB272Ebmiprx)) {
 		// CheckInterlaceFlagが展開されている
 		buf[nOffset++] = 0x13;													// RRC
 		buf[nOffset++] = 0x13;													// RRC
 		buf[nOffset++] = 0x54;	buf[nOffset++] = 0x3F;							// ANL A,#0x3F
 		buf[nOffset++] = 0x30;	buf[nOffset++] = 0xE0;	buf[nOffset++] = 0x07;	// JNB Check VHeight < 350
 		goto L_x2Height;
+	}
+	else if (model == EK241YEbmix) {
+		buf[nOffset++] = 0x12;	buf[nOffset++] = 0xE0;	buf[nOffset++] = 0xF5;	// LCALL CheckInterlaceFlag
+	}
+	else if (model == EK271Ebmix) {
+		buf[nOffset++] = 0x12;	buf[nOffset++] = 0xE7;	buf[nOffset++] = 0x9B;	// LCALL CheckInterlaceFlag
 	}
 	else if (model == EK221QE3bi) {
 		buf[nOffset++] = 0x12;	buf[nOffset++] = 0xE9;	buf[nOffset++] = 0x31;	// LCALL CheckInterlaceFlag
@@ -447,7 +476,11 @@ L_x2Height:
 		buf[nOffset++] = 0x50;	buf[nOffset++] = nOffsetRet-nOffset-1;			// JNC nOffsetRet
 		nJmpOffsetRetPos = nOffset-1;	// nOffsetRetが0の場合、最後に設定する
 	}
+
 	// Set Aspect 640x480(4:3)
+	if (0 < nJmpOffsetSetAspect640x480) {
+		buf[nJmpOffsetSetAspect640x480] = nOffset - nJmpOffsetSetAspect640x480 - 1;
+	}
 	buf[nOffset++] = 0xEC;														// MOV A,R4
 	buf[nOffset++] = 0xF9;														// MOV R1,A
 	buf[nOffset++] = 0xED;														// MOV A,R5
@@ -480,13 +513,7 @@ bool ModifyAcerWideModeFunction(enMode mode, enModel model)
 		return false;
 	}
 
-	// 
-	buf[nOffset++] = 0xE9;														// MOV A,R1
-	buf[nOffset++] = 0xFC;														// MOV R4,A
-	buf[nOffset++] = 0xEA;														// MOV A,R2
-	buf[nOffset++] = 0xFD;														// MOV R5,A
-
-	if (!SetAcerWideModeFunction(mode, model, nOffset, nOffsetRet)) {
+	if (!SetAcerWideModeFunction(mode, model, nOffset, nOffsetRet, true)) {
 		return false;
 	}
 
@@ -497,7 +524,24 @@ bool ModifyAcerWideModeFunction(enMode mode, enModel model)
 	return true;
 }
 
-// 青ジャックiPad液晶など、Aspectモードを持たない液晶に機能を追加する(実験中)
+#ifndef WIN32
+#define	_MAX_PATH	256
+size_t _filelength(int filedes)
+{
+    off_t pos = lseek(filedes, 0, SEEK_CUR);
+    if (pos != (off_t)-1)
+    {
+        off_t size = lseek(filedes, 0, SEEK_END);
+        lseek(filedes, pos, SEEK_SET);
+        return (size_t)size;
+    }
+    return (off_t)-1;
+}
+#endif
+
+// 青ジャックiPad液晶など、Aspectモードを持たない液晶にてアスペクト比4:3選択時、
+// Acer液晶のAspect改造と同じ機能を追加する(実験中)
+// 将来的にはCocopar/252B9も対応予定
 bool AddAspectMode(enMode mode, enModel model)
 {
 	int nOffset = 0x4BA00;
@@ -577,7 +621,7 @@ bool AddAspectMode(enMode mode, enModel model)
 	buf[nOffset++]=0x80;	buf[nOffset++]=0x0f;								// SJMP	LAB_ISTPTR	
 	nSJMPISTPTRPos2 = nOffset-1;
 #else
-	if (!SetAcerWideModeFunction(mode, model, nOffset, 0)) {					
+	if (!SetAcerWideModeFunction(mode, model, nOffset, 0, false)) {					
 		return false;
 	}
 	// set V
@@ -635,36 +679,90 @@ bool AddAspectMode(enMode mode, enModel model)
 	return true;
 }
 
-// 空き領域にアスペクト比取得関数を追加し、そちらを呼び出すようにする
+// 空き領域にアスペクト比取得関数を追加し、そちらを呼び出すようにする(実験中)
 // CB272Ebmiprxは元の領域サイズが小さく書き換えできないのでこちらを使用
-bool AddGetAspectRatioFunc(enMode mode, enModel model)
+// X68000の1024x424は4:3表示することで対応
+bool AddAspectModeForAcer(enMode mode, enModel model)
 {
-	int nOffset = 0x7F300;
+	int nOffset = 0x7F300, nCallOffset;
+	BYTE	bAddr[2];
 
 	// アスペクト比取得関数呼び出し先変更
 	if (model == CB272Ebmiprx) {
-		buf[0x30AA0] = 0xF3;
-		buf[0x30AA1] = 0x00;
+		nOffset = 0x7F300;
+		nCallOffset = 0x30AA0;
 		// Bank7
-		buf[0x30AA4] = 0x9B;
+		buf[nCallOffset+3] = 0x02;	buf[nCallOffset+4] = 0x9B;
+	}
+	else if (model == EK221QE3bi) {
+		nOffset = 0x6FC00;
+		nCallOffset = 0x309C0;
+		// Bank6
+		buf[nCallOffset+3] = 0x04;	buf[nCallOffset+4] = 0x55;
+	}
+	else if (model == EK241YEbmix) {
+		nOffset = 0x6FC00;
+		nCallOffset = 0x30A6E;
+		// Bank6
+		buf[nCallOffset+3] = 0x04;	buf[nCallOffset+4] = 0x55;
+	}
+	else if (model == EK271Ebmix) {
+		nOffset = 0x6FC00;
+		nCallOffset = 0x30A4A;
+		// Bank6
+		buf[nCallOffset+3] = 0x04;	buf[nCallOffset+4] = 0x55;
+	}
+	else if (model == KA222Q) {
+		nOffset = 0x5FC00;
+		nCallOffset = 0x306D5;
+		// Bank5
+		buf[nCallOffset+3] = 0x02;	buf[nCallOffset+4] = 0x00;
+	}
+	else if (model == QG221QHbmiix) {
+		nOffset = 0x6FC00;
+		nCallOffset = 0x30AFB;
+		// Bank6
+		buf[nCallOffset+3] = 0x04;	buf[nCallOffset+4] = 0xA0;
+	}
+	else if (model == C24M2020DJP) {
+		nOffset = 0x6FC00;
+		nCallOffset = 0x20A0F;
+		// Bank6
+		buf[nCallOffset+3] = 0x02;	buf[nCallOffset+4] = 0x94;
+	}
+	else if (model == C27M2020DJP) {
+		nOffset = 0x6FC00;
+		nCallOffset = 0x20A09;
+		// Bank6
+		buf[nCallOffset+3] = 0x02;	buf[nCallOffset+4] = 0x94;
 	}
 	else {
 		printf("code not implemented\n");
 		return false;
 	}
 
-	// 引数1のｱﾄﾞﾚｽ？を退避 R3の値0x01	
-	buf[nOffset++] = 0xE9;														// MOV A,R1
-	buf[nOffset++] = 0xFC;														// MOV R4,A
-	buf[nOffset++] = 0xEA;														// MOV A,R2
-	buf[nOffset++] = 0xFD;														// MOV R5,A
+	memcpy(bAddr, &nOffset, sizeof(bAddr));
+	buf[nCallOffset  ] = bAddr[1];
+	buf[nCallOffset+1] = bAddr[0];
 
-	if (!SetAcerWideModeFunction(mode, model, nOffset, 0)) {					
+	if (!SetAcerWideModeFunction(mode, model, nOffset, 0, true)) {					
 		return false;
 	}
 	// 退避していた第2引数用情報をR2/R3/R7に復元？
 	if (model == CB272Ebmiprx) {
 		buf[nOffset++]=0x90;	buf[nOffset++]=0xE1;	buf[nOffset++]=0xB5;	// MOV	 DPTR,#0xE1B5
+	}
+	else if (model == EK221QE3bi || model == EK241YEbmix || model == EK271Ebmix) {
+		buf[nOffset++]=0x90;	buf[nOffset++]=0xE0;	buf[nOffset++]=0x88;	// MOV	 DPTR,#0xE088
+	}
+	else if (model == KA222Q) {
+		buf[nOffset++]=0x90;	buf[nOffset++]=0xE2;	buf[nOffset++]=0x87;	// MOV	 DPTR,#0xE287
+	}
+	else if (model == QG221QHbmiix) {
+		buf[nOffset++]=0x90;	buf[nOffset++]=0xE3;	buf[nOffset++]=0x08;	// MOV	 DPTR,#0xE308
+	}
+	else if (model == C24M2020DJP || model == C27M2020DJP) {
+		buf[nOffset++]=0x90;	buf[nOffset++]=0xE3;	buf[nOffset++]=0x35;	// MOV	 DPTR,#0xE335
 	}
 	else {
 		printf("code not implemented\n");
@@ -686,5 +784,44 @@ bool AddGetAspectRatioFunc(enMode mode, enModel model)
 
 	printf("Add %s aspect ratio func\n", mode == ModeModify4x3 ? "force 4:3" : "original" );
 
+	return true;
+}
+
+// Dell P2214H/P2314Hのアスペクト比5:4選択時、Acer液晶のAspect改造と同様解像度でアスペクト比表示する(実験中)
+// おそらく使っていないコード領域とおそらく未使用のメモリを使用して実装しているが動作が不安定になる可能性あり
+bool AddAspectModeForDell(enMode mode, enModel model)
+{
+	char	szBinName[_MAX_PATH];
+	int		nFuncOffset, nCallOffset;
+	BYTE	bAddr[2];
+	if (model == P2214H) {
+		nFuncOffset = 0x1FA00;
+		nCallOffset = 0x1F9B1;
+		strcpy(szBinName, "p2214aspect.bin");
+	}
+	else if (model == P2314H) {
+		nFuncOffset = 0x1FA00;
+		nCallOffset = 0x1CFFC;
+		strcpy(szBinName, "p2314aspect.bin");
+	}
+	else {
+		printf("Invlid model\n");
+		return false;
+	}
+
+	FILE *fp = fopen(szBinName, "rb");
+	if (!fp) {
+		printf("can't open %s\n", szBinName);
+		return false;
+	}
+	int size = _filelength(fileno(fp));
+	fread(&buf[nFuncOffset], size, 1, fp);
+	fclose(fp);
+
+	memcpy(bAddr, &nFuncOffset, sizeof(bAddr));
+	buf[nCallOffset  ] = bAddr[1];
+	buf[nCallOffset+1] = bAddr[0];
+
+	printf("Add Aspect Mode For Dell Done\n");
 	return true;
 }

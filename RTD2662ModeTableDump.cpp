@@ -61,6 +61,7 @@ enum enIndex
 	X68_Memtest,	// X68000 memtest68K 31KHz
 	X68_Dash,		// X68000 ダッシュ野郎 31KHz
 	X68_FZ24K,		// X68000 Fantasy Zone 24KHz
+	X68_FZ31K,		// X68000 Fantasy Zone 31KHz
 	X68_Druaga,		// X68000 Druaga 31KHz
 	FMT_Raiden,		// FM TOWNS 雷電伝説 31KHz
 	FMT_SRMP2PS,	// FM TOWNS スーパーリアル麻雀P2&P3 31KHz
@@ -79,7 +80,8 @@ bool ModifyFirmware(enModel model);
 bool DisableAcerAspectChangeCheck(enModel model);
 bool ModifyAcerWideModeFunction(enMode mode, enModel model);
 bool AddAspectMode(enMode mode, enModel model);
-bool AddGetAspectRatioFunc(enMode mode, enModel model);
+bool AddAspectModeForAcer(enMode mode, enModel model);
+bool AddAspectModeForDell(enMode mode, enModel model);
 
 char *MakePath(const char *szBasePath, const char *szAddFname, const char *szModExt=NULL)
 {
@@ -349,6 +351,7 @@ enMode		nMode		//!< i	:0=Dump 1=Modify 2=Modify4x3 -1=CheckOnly
 	nIdxNo[M72_RTYPE] = 40;		// 40:1152x864 67.5KHz/75Hz
 	nIdxNo[MVS] = 41;			// 41:1152x864 67.0KHz/85Hz
 	nIdxNo[FMT_LINUX] = 42;		// 42:1152x870 68.7KHz/75Hz
+	nIdxNo[X68_FZ31K] = 43;		// 43:1152x900 61.8KHz/66Hz
 	nIdxNo[GEN_15K_P] = 87;		// 87:1440x240 15.7KHz/60Hz
 
 	if (model == UNKNOWN) {
@@ -359,8 +362,12 @@ enMode		nMode		//!< i	:0=Dump 1=Modify 2=Modify4x3 -1=CheckOnly
 				printf("DELL E1715S\n");
 				model = E1715S;
 			}
+			else if (strstr(szPath, "P2214")) {	// P2214もﾌｧｲﾙ名で判定
+				printf("DELL P2214H\n");
+				model = P2214H;
+			}
 			else {
-				printf("DELL P2214H/P2314H\n");
+				printf("DELL P2314H\n");
 				model = P2314H;
 			}
 			break;
@@ -389,6 +396,7 @@ enMode		nMode		//!< i	:0=Dump 1=Modify 2=Modify4x3 -1=CheckOnly
 			nIdxNo[M72_RTYPE] = 39;		// 39:1152x864 67.5KHz/75Hz
 			nIdxNo[MVS] = 40;			// 40:1152x864 67.0KHz/85Hz
 			nIdxNo[FMT_LINUX] = 41;		// 41:1152x870 68.7KHz/75Hz
+			nIdxNo[X68_FZ31K] = 42;		// 42:1152x900 61.8KHz/66Hz
 			nIdxNo[GEN_15K_P] = 86;		// 86:1440x240 15.7KHz/60Hz
 			break;
 		case 0xD97E:	// 同上 1366x768 UIは黒ジャックと同じ？
@@ -417,6 +425,7 @@ enMode		nMode		//!< i	:0=Dump 1=Modify 2=Modify4x3 -1=CheckOnly
 			nIdxNo[M72_RTYPE] = 39;		// 39:1152x864 67.5KHz/75Hz
 			nIdxNo[MVS] = 40;			// 40:1152x864 67.0KHz/85Hz
 			nIdxNo[FMT_LINUX] = 41;		// 41:1152x870 68.7KHz/75Hz
+			nIdxNo[X68_FZ31K] = 42;		// 42:1152x900 61.8KHz/66Hz
 			nIdxNo[GEN_15K_P] = 86;		// 86:1440x240 15.7KHz/60Hz
 			break;
 		case 0x221A3:	// taobao 広州四維液晶貿易有限公司 V.M56VDA iPad
@@ -434,6 +443,7 @@ enMode		nMode		//!< i	:0=Dump 1=Modify 2=Modify4x3 -1=CheckOnly
 			nIdxNo[M72_RTYPE] = 39;		// 39:1152x864 67.5KHz/75Hz
 			nIdxNo[MVS] = 40;			// 40:1152x864 67.0KHz/85Hz
 			nIdxNo[FMT_LINUX] = 41;		// 41:1152x870 68.7KHz/75Hz
+			nIdxNo[X68_FZ31K] = 42;		// 42:1152x900 61.8KHz/66Hz
 			nIdxNo[GEN_15K_P] = 86;		// 86:1440x240 15.7KHz/60Hz
 			break;
 		case 0x22386:
@@ -544,8 +554,9 @@ enMode		nMode		//!< i	:0=Dump 1=Modify 2=Modify4x3 -1=CheckOnly
 		model != UNKNOWN && model != RTD2668) {
 
 #if 1
-		if (model == EK271Ebmix || model == EK241YEbmix || model == QG221QHbmiix || 
-			model == C24M2020DJP || model == C27M2020DJP || model == KA222Q || model == EK221QE3bi) {
+		if (nMode == ModeModify && 
+			(model == EK271Ebmix || model == EK241YEbmix || model == QG221QHbmiix || 
+			 model == C24M2020DJP || model == C27M2020DJP || model == KA222Q || model == EK221QE3bi)) {
 			if (DisableAcerAspectChangeCheck(model)) {
 				if (!ModifyAcerWideModeFunction(nMode, model)) {
 					fprintf(stderr, "Fail modify acer wide mode function\n");
@@ -562,10 +573,19 @@ enMode		nMode		//!< i	:0=Dump 1=Modify 2=Modify4x3 -1=CheckOnly
 				goto L_FREE;
 			}
 		}
-		else if (nMode == ModeModifyExp && model == CB272Ebmiprx) {
+		else if (nMode == ModeModifyExp && (model == P2214H || model == P2314H)) {
+			if (!AddAspectModeForDell(nMode, model)) {
+				fprintf(stderr, "Fail add aspect mode for dell\n");
+				goto L_FREE;
+			}
+		}
+		else if (nMode == ModeModifyExp && 
+				 (model == EK271Ebmix || model == EK241YEbmix || model == QG221QHbmiix || 
+	 			  model == C24M2020DJP || model == C27M2020DJP || model == KA222Q || 
+				  model == EK221QE3bi || model == CB272Ebmiprx)) {
 			if (DisableAcerAspectChangeCheck(model)) {
-				if (!AddGetAspectRatioFunc(nMode, model)) {
-					fprintf(stderr, "Fail add get aspect func\n");
+				if (!AddAspectModeForAcer(nMode, model)) {
+					fprintf(stderr, "Fail add aspect mode for acer\n");
 					goto L_FREE;
 				}
 			}
@@ -593,10 +613,14 @@ enMode		nMode		//!< i	:0=Dump 1=Modify 2=Modify4x3 -1=CheckOnly
 		SetParameter<T_Info>(nIdxNo[X68_31K],		0x0F,  768, 512, 314, 554, 5, 5, 1104, 568, 261, 32);		// X68000  768x512 31KHz
 		SetParameter<T_Info>(nIdxNo[X68_Memtest],	0x0F,  768, 512, 340, 554, 5, 5, 1130, 613, 320, 41);		// X68000 memtest 31KHz
 		SetParameter<T_Info>(nIdxNo[X68_Dash],		0x0F,  768, 536, 315, 543, 5, 5, 1176, 580, 308, 38);		// X68000 ダッシュ野郎
+		//FantasyZone 31KHz 現状ダッシュ野郎のプリセットが適用されている？
+		//SetParameter<T_Info>(nIdxNo[X68_FZ31K],		0x0F,  644, 448, 311, 547, 3, 3, 1100, 568, 261, 90);		// X68000 Fantasy Zone 31KHz
+		SetParameter<T_Info>(nIdxNo[X68_FZ31K],		0x0F,  764, 512, 311, 547, 3, 3, 1104, 568, 261, 32);		// X68000  768x512 31KHz
 		SetParameter<T_Info>(nIdxNo[FMT_Raiden],	0x0F,  768, 512, 323, 603, 3, 3, 1104, 536, 240, 19);		// TOWNS 雷電伝説
 		SetParameter<T_Info>(nIdxNo[M72_RTYPE],		0x0F,  768, 256, 157, 550, 5, 5, 1024, 284, 156, 24);		// R-TYPE基板 15.7KHz/55Hz KAPPY.さん提供
 		SetParameter<T_Info>(nIdxNo[FMT_LINUX],		0x0F,  768, 512, 311, 579, 3, 3,  920, 538, 138, 26);		// TOWNS LINUXコンソール プーさん提供
 		if (bModify || model == PCB800099 ) {
+
 			// PCB800099(RTD2660/2662)以外は水平同期信号幅のﾁｪｯｸを外さないと下記ﾌﾟﾘｾｯﾄは映らない
 			SetParameter<T_Info>(nIdxNo[X68_FZ24K],		0x0F,  640, 448, 245, 524, 5, 5,  944, 469,  64, 10);		// X68000 Fantasy Zone 24KHz		※ModifyFirmwareが通用した場合のみ対応
 			SetParameter<T_Info>(nIdxNo[X68_Druaga],	0x0F,  672, 560, 315, 530, 5, 5, 1104, 595, 108, 31);		// X68000 Druaga 31KHz				※ModifyFirmwareが通用した場合のみ対応
@@ -605,7 +629,7 @@ enMode		nMode		//!< i	:0=Dump 1=Modify 2=Modify4x3 -1=CheckOnly
 			SetParameter<T_Info>(nIdxNo[GEN_15K_P], 0x00, 0, 0, 0, 0, 5, 5, 0, 0, 0, 0);						// 元からある15.7KHz/Progressive/1440x240pの許容誤差を10->5に変更
 			if (model == LHRD56_IPAD97) {	// VTotal 232以下ﾀﾞﾒっぽい
 				//buf[0x3E040] = 0xE4;	// DEBUG MODE ENABLE
-				//buf[0x4A950] = 0xC3;	// D3->C3 UserInterfaceGetDclkNoSupportStatusを常にreturn FALSEに
+				//buf[0x4A950] = 0xC3;	// D3->C3
 				SetParameter<T_Info>(nIdxNo[MVS], 0x0F, 576, 232, 157, 591, 3, 3, 768, 263, 120, 24);				// MVS基板 15.7KHz/59.1Hz KAPPY.さん提供
 				SetParameter<T_Info>(136, 0x00, 0, 0, 0, 0, 5, 5, 0, 0, 0, 0);						// 元からある15.7KHz/Progressive/1440x240pの許容誤差を10->5に変更
 				SetParameter<T_Info>(148, 0x00, 0, 0, 0, 0, 5, 5, 0, 0, 0, 0);						// 元からある15.7KHz/Progressive/720x240pの許容誤差を10->5に変更
