@@ -594,7 +594,7 @@ enMode		nMode		//!< i	:0=Dump 1=Modify 2=Modify4x3 -1=CheckOnly
 			}
 		}
 
-		if (model != PCB800099 && model != X2377HS) {
+		if (model != PCB800099) {
 			bModify = ModifyFirmware(model);
 			if (bModify) {
 				printf("*** modify firmware success ***\n");
@@ -620,7 +620,7 @@ enMode		nMode		//!< i	:0=Dump 1=Modify 2=Modify4x3 -1=CheckOnly
 		SetParameter<T_Info>(nIdxNo[M72_RTYPE],		0x0F,  768, 256, 157, 550, 5, 5, 1024, 284, 156, 24);		// R-TYPE基板 15.7KHz/55Hz KAPPY.さん提供
 		SetParameter<T_Info>(nIdxNo[FMT_LINUX],		0x0F,  768, 512, 311, 579, 3, 3,  920, 538, 138, 26);		// TOWNS LINUXコンソール プーさん提供
 
-		if (model == X2377HS) {
+		if (model == X2377HS) {	// ライフフォース基板がどちらのプリセット適用されているかチェック
 			SetParameter<T_Info>(nIdxNo[87],		0x0F,  644, 240, 157, 600, 5, 5,  760, 262,  98, 20);		// Generic 240p
 			SetParameter<T_Info>(nIdxNo[139],		0x0F,  648, 240, 157, 600, 5, 5,  760, 262,  98, 20);		// Generic 240p
 		}

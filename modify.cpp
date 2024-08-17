@@ -80,6 +80,15 @@ bool ModifyFirmware(enModel model)
 		}
 		nOfsVHeightCheck = 4;
 	}
+	else if (model == X2377HS) {
+		BYTE	keyVHeightCheck[] = {0xC3, 0xE5, 0x5A, 0x94, 0xF0};
+		nPosVHeightCheck = FindKey(keyVHeightCheck, 5);
+		if (nPosVHeightCheck < 0) {
+			fprintf(stderr, "keyVHeightCheck not find\n");
+			goto L_RET;
+		}
+		nOfsVHeightCheck = 4;
+	}
 	else {
 		nPosVHeightCheck = FindKey(keyVHeightCheck, 6);
 		if (nPosVHeightCheck < 0) {
