@@ -624,11 +624,11 @@ enMode		nMode		//!< i	:0=Dump 1=Modify 2=Modify4x3 -1=CheckOnly
 			SetParameter<T_Info>(nIdxNo[87],		0x0F,  644, 240, 157, 600, 5, 5,  760, 262,  98, 20);		// Generic 240p
 			SetParameter<T_Info>(nIdxNo[139],		0x0F,  648, 240, 157, 600, 5, 5,  760, 262,  98, 20);		// Generic 240p
 		}
-		if (model == V_M56VDA_IPAD97) {	// パロディウスで左右黒幕でないようにできるか
-			SetParameter<T_Info>(nIdxNo[86],		0x0F,  644, 240, 157, 600,  5,  5,  760, 262,  98, 20);		// Generic 240p
-			SetParameter<T_Info>(nIdxNo[148],		0x0F,  648, 240, 157, 600,  5,  5,  760, 262,  98, 20);		// Generic 240p
-			SetParameter<T_Info>(nIdxNo[136],		0x0F,  652, 240, 157, 600,  5,  5,  760, 262,  98, 20);		// Generic 240p
-			printf("V_M56VDA_IPAD97 Special Setting\n");
+		if (model == V_M56VDA_IPAD97) {	// ウォーリアブレードがどのプリセット使われるか調査用
+			SetParameter<T_Info>(86 ,		0x0F,  644, 240, 157, 600,  5,  5,  760, 262,  98, 20);		// 1440x240 15.7KHz 60Hz 262(Generic 240p)
+			SetParameter<T_Info>(136, 		0x0F,  648, 240, 157, 600,  5,  5,  760, 262,  98, 20);		// 1440x240 15.7KHz 60Hz 262
+			SetParameter<T_Info>(148, 		0x0F,  652, 240, 157, 600,  5,  5,  760, 262,  98, 20);		// 720x240  15.7KHz 60Hz 262
+			printf("V_M56VDA_IPAD97 Preset Test\n");
 		}
 		if (bModify || model == PCB800099 ) {
 
@@ -644,6 +644,10 @@ enMode		nMode		//!< i	:0=Dump 1=Modify 2=Modify4x3 -1=CheckOnly
 				SetParameter<T_Info>(nIdxNo[MVS], 0x0F, 576, 232, 157, 591, 3, 3, 768, 263, 120, 24);				// MVS基板 15.7KHz/59.1Hz KAPPY.さん提供
 				SetParameter<T_Info>(136, 0x00, 0, 0, 0, 0, 5, 5, 0, 0, 0, 0);						// 元からある15.7KHz/Progressive/1440x240pの許容誤差を10->5に変更
 				SetParameter<T_Info>(148, 0x00, 0, 0, 0, 0, 5, 5, 0, 0, 0, 0);						// 元からある15.7KHz/Progressive/720x240pの許容誤差を10->5に変更
+			}
+			else if (model == V_M56VDA_IPAD97) {	// VTotal 240以下ﾀﾞﾒっぽい
+				SetParameter<T_Info>(nIdxNo[MVS], 0x0F, 576, 240, 157, 591, 3, 3, 768, 263, 120, 24);				// MVS基板 15.7KHz/59.1Hz KAPPY.さん提供
+				printf("V_M56VDA_IPAD97 MVS Setting\n");
 			}
 			else {
 				SetParameter<T_Info>(nIdxNo[MVS], 0x0F, 576, 224, 157, 591, 3, 3, 768, 263, 120, 24);				// MVS基板 15.7KHz/59.1Hz KAPPY.さん提供
