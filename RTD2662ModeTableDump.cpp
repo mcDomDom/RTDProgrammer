@@ -625,7 +625,10 @@ enMode		nMode		//!< i	:0=Dump 1=Modify 2=Modify4x3 -1=CheckOnly
 			SetParameter<T_Info>(nIdxNo[139],		0x0F,  648, 240, 157, 600, 5, 5,  760, 262,  98, 20);		// Generic 240p
 		}
 		if (model == V_M56VDA_IPAD97) {	// パロディウスで左右黒幕でないようにできるか
-			SetParameter<T_Info>(nIdxNo[148],		0x0F,  648, 240, 157, 600, 10, 10,  760, 262,  98, 20);		// Generic 240p
+			SetParameter<T_Info>(nIdxNo[86],		0x0F,  644, 240, 157, 600,  5,  5,  760, 262,  98, 20);		// Generic 240p
+			SetParameter<T_Info>(nIdxNo[148],		0x0F,  648, 240, 157, 600,  5,  5,  760, 262,  98, 20);		// Generic 240p
+			SetParameter<T_Info>(nIdxNo[136],		0x0F,  652, 240, 157, 600,  5,  5,  760, 262,  98, 20);		// Generic 240p
+			printf("V_M56VDA_IPAD97 Special Setting\n");
 		}
 		if (bModify || model == PCB800099 ) {
 
