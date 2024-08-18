@@ -624,6 +624,9 @@ enMode		nMode		//!< i	:0=Dump 1=Modify 2=Modify4x3 -1=CheckOnly
 			SetParameter<T_Info>(nIdxNo[87],		0x0F,  644, 240, 157, 600, 5, 5,  760, 262,  98, 20);		// Generic 240p
 			SetParameter<T_Info>(nIdxNo[139],		0x0F,  648, 240, 157, 600, 5, 5,  760, 262,  98, 20);		// Generic 240p
 		}
+		if (model == V_M56VDA_IPAD97) {	// パロディウスで左右黒幕でないようにできるか
+			SetParameter<T_Info>(nIdxNo[148],		0x0F,  648, 240, 157, 600, 10, 10,  760, 262,  98, 20);		// Generic 240p
+		}
 		if (bModify || model == PCB800099 ) {
 
 			// PCB800099(RTD2660/2662)以外は水平同期信号幅のﾁｪｯｸを外さないと下記ﾌﾟﾘｾｯﾄは映らない
