@@ -621,8 +621,8 @@ enMode		nMode		//!< i	:0=Dump 1=Modify 2=Modify4x3 -1=CheckOnly
 		SetParameter<T_Info>(nIdxNo[FMT_LINUX],		0x0F,  768, 512, 311, 579, 3, 3,  920, 538, 138, 26);		// TOWNS LINUXコンソール プーさん提供
 
 		if (model == X2377HS) {	// ライフフォース基板がどちらのプリセット適用されているかチェック
-			SetParameter<T_Info>(nIdxNo[87],		0x0F,  644, 240, 157, 600, 5, 5,  760, 262,  98, 20);		// Generic 240p
-			SetParameter<T_Info>(nIdxNo[139],		0x0F,  648, 240, 157, 600, 5, 5,  760, 262,  98, 20);		// Generic 240p
+			SetParameter<T_Info>(87,		0x0F,  644, 240, 157, 600, 5, 5,  760, 262,  98, 20);		// Generic 240p
+			SetParameter<T_Info>(139,		0x0F,  648, 240, 157, 600, 5, 5,  760, 262,  98, 20);		// Generic 240p
 		}
 		if (model == V_M56VDA_IPAD97) {	// ウォーリアブレードがどのプリセット使われるか調査用
 			SetParameter<T_Info>(86 ,		0x0F,  644, 240, 157, 600,  5,  5,  760, 262,  98, 20);		// 1440x240 15.7KHz 60Hz 262(Generic 240p)
