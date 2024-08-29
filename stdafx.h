@@ -48,6 +48,7 @@ enum enModel
 	EK271Ebmix,			// Acer EK271Ebmix KAPPY.Žî•ñ’ñ‹Ÿ‚ ‚è‚ª‚Æ‚¤‚²‚´‚¢‚Ü‚·
 	KA222Q,				// Acer KA222Q CAT-2Žî•ñ’ñ‹Ÿ‚ ‚è‚ª‚Æ‚¤‚²‚´‚¢‚Ü‚·
 	QG221QHbmiix,		// Acer QG221QHbmiix KAPPY.Žî•ñ’ñ‹Ÿ‚ ‚è‚ª‚Æ‚¤‚²‚´‚¢‚Ü‚·
+	QG271Ebmiix,		// Acer QG271Ebmiix ‚Ä‚Ü‚è‚ Žî•ñ’ñ‹Ÿ‚ ‚è‚ª‚Æ‚¤‚²‚´‚¢‚Ü‚·
 	C24M2020DJP,		// Amazon C24M2020DJP ‚¦‚­‚µ‚ÑŽî•ñ’ñ‹Ÿ‚ ‚è‚ª‚Æ‚¤‚²‚´‚¢‚Ü‚·
 	C27M2020DJP,		// Amazon C27M2020DJP ‚Ý‚äŽî•ñ’ñ‹Ÿ‚ ‚è‚ª‚Æ‚¤‚²‚´‚¢‚Ü‚·
 	X2377HS,			// iiyama X2377HS KAPPY.Žî•ñ’ñ‹Ÿ‚ ‚è‚ª‚Æ‚¤‚²‚´‚¢‚Ü‚·

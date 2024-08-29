@@ -500,6 +500,11 @@ enMode		nMode		//!< i	:0=Dump 1=Modify 2=Modify4x3 -1=CheckOnly
 			model = EK241YEbmix;
 			// プリセットテーブルはP2314Hとほぼ同じ
 			break;
+		case 0x45DCD:	// Acer QG271Ebmiix てまりあ氏
+			model = QG271Ebmiix;
+			printf("Acer QG271Ebmiix\n");
+			// プリセットテーブルはP2314Hとほぼ同じ
+			break;
 		case 0x52A56:	// Acer QG221QHbmiix KAPPY.氏
 			printf("Acer QG221QHbmiix\n");
 			model = QG221QHbmiix;
@@ -555,8 +560,10 @@ enMode		nMode		//!< i	:0=Dump 1=Modify 2=Modify4x3 -1=CheckOnly
 
 #if 1
 		if (nMode == ModeModify && 
-			(model == EK271Ebmix || model == EK241YEbmix || model == QG221QHbmiix || 
-			 model == C24M2020DJP || model == C27M2020DJP || model == KA222Q || model == EK221QE3bi)) {
+			(model == EK271Ebmix || model == EK241YEbmix || 
+			 model == QG221QHbmiix || model == QG271Ebmiix || 
+			 model == C24M2020DJP || model == C27M2020DJP || 
+			 model == KA222Q || model == EK221QE3bi)) {
 			if (DisableAcerAspectChangeCheck(model)) {
 				if (!ModifyAcerWideModeFunction(nMode, model)) {
 					fprintf(stderr, "Fail modify acer wide mode function\n");
@@ -580,9 +587,10 @@ enMode		nMode		//!< i	:0=Dump 1=Modify 2=Modify4x3 -1=CheckOnly
 			}
 		}
 		else if (nMode == ModeModifyExp && 
-				 (model == EK271Ebmix || model == EK241YEbmix || model == QG221QHbmiix || 
-	 			  model == C24M2020DJP || model == C27M2020DJP || model == KA222Q || 
-				  model == EK221QE3bi || model == CB272Ebmiprx)) {
+				 (model == EK271Ebmix || model == EK241YEbmix || 
+				  model == QG221QHbmiix || model == QG271Ebmiix ||
+	 			  model == C24M2020DJP || model == C27M2020DJP || 
+				  model == KA222Q || model == EK221QE3bi || model == CB272Ebmiprx)) {
 			if (DisableAcerAspectChangeCheck(model)) {
 				if (!AddAspectModeForAcer(nMode, model)) {
 					fprintf(stderr, "Fail add aspect mode for acer\n");
