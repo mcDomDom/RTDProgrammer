@@ -286,6 +286,8 @@ enMode		nMode		//!< i	:0=Dump 1=Modify 2=Modify4x3 -1=CheckOnly
 	char szFilePath[4096];
 	bool bModify;
 
+	ret = 0;
+
 	strcpy(szFilePath, szPath);
 
 	fp = fopen(szFilePath, "rb");
@@ -530,6 +532,11 @@ enMode		nMode		//!< i	:0=Dump 1=Modify 2=Modify4x3 -1=CheckOnly
 			model = KA222Q;
 			// プリセットテーブルはP2314Hとほぼ同じ
 			break;
+		case 0x4239D:	// Acer KA222Q_2 SATOSHI氏
+			printf("Acer KA222Q_2\n");
+			model = KA222Q_2;
+			// プリセットテーブルはP2314Hとほぼ同じ
+			break;
 		case 0x528EC:	// Acer EK221QE3bi tomo_retro氏
 			printf("Acer EK221QE3bi\n");
 			model = EK221QE3bi;
@@ -553,6 +560,7 @@ enMode		nMode		//!< i	:0=Dump 1=Modify 2=Modify4x3 -1=CheckOnly
 	}
 	if (model == UNKNOWN) {
 		fprintf(stderr, "unknown firmware nModeTableStart=%X\n", nModeTableStart);
+		ret = -10;
 	}
 	
 	if ((nMode == ModeModify || nMode == ModeModify4x3 || nMode == ModeModifyExp) && 
@@ -563,26 +571,31 @@ enMode		nMode		//!< i	:0=Dump 1=Modify 2=Modify4x3 -1=CheckOnly
 			(model == EK271Ebmix || model == EK241YEbmix || 
 			 model == QG221QHbmiix || model == QG271Ebmiix || 
 			 model == C24M2020DJP || model == C27M2020DJP || 
-			 model == KA222Q || model == EK221QE3bi)) {
+			 model == KA222Q || model == KA222Q_2 || 
+			 model == EK221QE3bi)) {
 			if (DisableAcerAspectChangeCheck(model)) {
 				if (!ModifyAcerWideModeFunction(nMode, model)) {
 					fprintf(stderr, "Fail modify acer wide mode function\n");
+					ret = -11;
 					goto L_FREE;
 				}
 			}
 			else {
 				fprintf(stderr, "Can't modify acer aspect function\n");
+				ret = -12;
 			}
 		}
 		else if (nMode == ModeModifyExp && model == LHRD56_IPAD97) {
 			if (!AddAspectMode(nMode, model)) {
 				fprintf(stderr, "Fail add aspect mode\n");
+				ret = -13;
 				goto L_FREE;
 			}
 		}
 		else if (nMode == ModeModifyExp && (model == P2214H || model == P2314H)) {
 			if (!AddAspectModeForDell(nMode, model)) {
 				fprintf(stderr, "Fail add aspect mode for dell\n");
+				ret = -14;
 				goto L_FREE;
 			}
 		}
@@ -590,15 +603,18 @@ enMode		nMode		//!< i	:0=Dump 1=Modify 2=Modify4x3 -1=CheckOnly
 				 (model == EK271Ebmix || model == EK241YEbmix || 
 				  model == QG221QHbmiix || model == QG271Ebmiix ||
 	 			  model == C24M2020DJP || model == C27M2020DJP || 
-				  model == KA222Q || model == EK221QE3bi || model == CB272Ebmiprx)) {
+				  model == KA222Q || model == KA222Q_2 || 
+				  model == EK221QE3bi || model == CB272Ebmiprx)) {
 			if (DisableAcerAspectChangeCheck(model)) {
 				if (!AddAspectModeForAcer(nMode, model)) {
 					fprintf(stderr, "Fail add aspect mode for acer\n");
+					ret = -15;
 					goto L_FREE;
 				}
 			}
 			else {
 				fprintf(stderr, "Can't modify acer aspect function\n");
+				ret = -16;
 			}
 		}
 
@@ -609,6 +625,7 @@ enMode		nMode		//!< i	:0=Dump 1=Modify 2=Modify4x3 -1=CheckOnly
 			}
 			else {
 				fprintf(stderr, "can't modify firmware\n");
+				ret = -17;
 			}
 		}
 #else
@@ -662,20 +679,21 @@ enMode		nMode		//!< i	:0=Dump 1=Modify 2=Modify4x3 -1=CheckOnly
 			}
 		}
 
-		strcpy(szFilePath, MakePath(szFilePath, "_mod"));
+		strcpy(szFilePath, MakePath(szFilePath, (nMode == ModeModifyExp) ? "_modexp" : "_mod"));
 		fpOut = fopen(szFilePath, "wb");
 		if (fpOut) {
-			ret = fwrite(buf, nFileLen, 1, fpOut);
-			if (ret) {
+			if (fwrite(buf, nFileLen, 1, fpOut)) {
 				printf("Modified firmware %s writ ok\n", szFilePath);
 			}
 			else {
 				fprintf(stderr, "can't write %s\n", szFilePath);
+				ret = -20;
 			}
 			fclose(fpOut);
 		}
 		else {
 			fprintf(stderr, "can't open %s\n", szFilePath);
+			ret = -21;
 		}
 	}
 	else if (nMode == ModeDump) {
@@ -710,8 +728,6 @@ enMode		nMode		//!< i	:0=Dump 1=Modify 2=Modify4x3 -1=CheckOnly
 			}
 		}
 	}
-
-	ret = model;
 
 L_FREE:
 	free(buf);
