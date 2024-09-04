@@ -323,6 +323,7 @@ void DellCharConv(const char *path)
 		if (isascii(nChar)) printf("%c", nChar);
 	}
 	*/
+#ifdef WIN32
 	char *outbuf = (char *)malloc(nFileLen);
 	for (i=0; i<nFileLen; i++) outbuf[i] = CharTbl[buf[i]];
 	char outpath[1024], szDrive[256], szDir[256], szFName[256], szExt[256];
@@ -333,6 +334,7 @@ void DellCharConv(const char *path)
 	fwrite(outbuf, nFileLen, 1, fp);
 	fclose(fp);
 	free(outbuf);
+#endif
 }
 
 //! Dell ‹@Ží”»•Ê
