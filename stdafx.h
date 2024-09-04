@@ -30,8 +30,9 @@ enum enModel
 	RTD2668,			// RTD2668使用基板(aitendo?)
 	PCB800099,			// RTD2662使用基板
 	E1715S,				// DELL E1715S tsutsui氏情報提供ありがとうございます
-	P2214H,				// DELL P2214H
-	P2314H,				// DELL P2314H
+	P2214H_P72WF,		// DELL P2214H P72WF
+	P2314H_48H1R,		// DELL P2314H 48H1R
+	P2314H_79H3D,		// DELL P2214H 79H3D
 	PHI_252B9,			// PHILIPS 252B9/11
 	LHRD56_IPAD97,		// 青ジャック基板にiPad 9.7型液晶を使用した15KHzモニタ用→なんか良い愛称ないんでしょうか
 	LHRD56_IPAD97_POO,	// 青ジャック基板にiPad 9.7型液晶を使用した15KHzモニタ用(別版) プー氏情報提供ありがとうございます
@@ -45,6 +46,8 @@ enum enModel
 	CB272Ebmiprx,		// Acer CB272Ebmiprx AKT氏情報提供ありがとうございます
 	EK221QE3bi,			// Acer EK221QE3bi tomo_retro氏情報提供ありがとうございます
 	EK241YEbmix,		// Acer EK241YEbmix KAPPY.氏情報提供ありがとうございます
+	EK241YEbmix_2,		// Acer EK241YEbmix_2 しげ氏情報提供ありがとうございます
+	EK271Ebmix_2,		// Acer EK271Ebmix_2 しげ氏情報提供ありがとうございます
 	EK271Ebmix,			// Acer EK271Ebmix KAPPY.氏情報提供ありがとうございます
 	KA222Q,				// Acer KA222Q CAT-2氏情報提供ありがとうございます
 	KA222Q_2,			// Acer KA222Q_2 SATOSHI氏情報提供ありがとうございます

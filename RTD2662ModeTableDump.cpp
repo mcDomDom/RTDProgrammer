@@ -270,6 +270,100 @@ WORD	nVStart
 	return 0;
 }
 
+void DellCharConv(const char *path)
+{
+	const char CharTbl[256] = {
+#if 0	// RTD2556 LCD Controller Board
+	//  0    1    2    3    4    5    6    7    8    9    a    b    c    d    e    f
+		0  , '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E',	// 00
+		'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U',	// 10
+		'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k',	// 20
+		'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z', 0  ,	// 30
+		0  , 0  , 0  , 0  , 0  , 0  , 0  , 0  , 0  , 0  , 0  , 0  , 0  , 0  , 0  , 0  ,	// 40
+		0  , 0  , 0  , 0  , 0  , 0  , 0  , 0  , 0  , 0  , 0  , '-', 0  , 0  , 0  , 0  ,	// 50
+		0  , 0  , 0  , 0  , 0  , 0  , 0  , 0  , 0  , 0  , 0  , 0  , 0  , 0  , 0  , 0  ,	// 60
+		0  , 0  , 0  , 0  , 0  , 0  , 0  , 0  , 0  , 0  , 0  , 0  , 0  , 0  , 0  , 0  ,	// 70
+#else	// DELL P2314H
+	//  0    1    2    3    4    5    6    7    8    9    a    b    c    d    e    f
+		0  , '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', ' ', 'C', 'D', 'E',	// 00
+		'F', '-', '.', 'I', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 0  , 0  ,	// 10
+		0  , 0  , 'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N',	// 20
+		'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', 'a', 'b', 'c', 'd',	// 30
+		'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't',	// 40
+		'u', 'v', 'w', 'x', 'y', 'z', 0  , 0  , 0  , 0  , 0  , '-', 0  , 0  , 0  , 0  ,	// 50
+		0  , 0  , 0  , 0  , 0  , 0  , 0  , 0  , 0  , 0  , 0  , 0  , 0  , 0  , 0  , 0  ,	// 60
+		0  , 0  , 0  , 0  , 0  , 0  , 0  , 0  , 0  , 0  , 0  , 0  , 0  , 0  , 0  , 0  ,	// 70
+#endif
+	};
+	char	RevCharTbl[256];
+	int i, nStart = 0, nOffset = 0, nSize, nStrLen;
+	bool bHit = false;
+	char pattern[16];
+
+	/*
+	for (i=0; i<256; i++) RevCharTbl[CharTbl[i]] = i;
+
+
+	memset(pattern, 0x00, sizeof(pattern));
+	nStrLen = strlen(str);
+	if (sizeof(pattern) < nStrLen) return;
+	for (i=0; i<nStrLen; i++) pattern[i] = RevCharTbl[str[i]];
+	for (i=0; i<nFileLen-nStrLen; i++) {
+		if (memcmp(&buf[i], pattern, nStrLen) == 0) {
+		}
+	}
+	//nStart = 0x345DA;
+	nStart = 0x4D98F;	// P2314H Model Name & Firmware Code
+	nSize = 32;
+	//nStart = 0x42000;	// P2314H Language
+	//nSize = 0x4400;
+	for (int i=nStart; i<nStart+nSize; i++) {
+		//int nChar = 'A'+buf[i]-nOffset;
+		int nChar = CharTbl[buf[i]];
+		if (isascii(nChar)) printf("%c", nChar);
+	}
+	*/
+	char *outbuf = (char *)malloc(nFileLen);
+	for (i=0; i<nFileLen; i++) outbuf[i] = CharTbl[buf[i]];
+	char outpath[1024], szDrive[256], szDir[256], szFName[256], szExt[256];
+	_splitpath(path, szDrive, szDir, szFName, szExt);
+	strcat(szFName, "_charconv");
+	_makepath(outpath, szDrive, szDir, szFName, szExt);
+	FILE *fp = fopen(outpath, "wb");
+	fwrite(outbuf, nFileLen, 1, fp);
+	fclose(fp);
+	free(outbuf);
+}
+
+//! Dell 機種判別
+enModel JudgeDellModel()
+{
+	BYTE	patE1715S_xxxxx[] = {0x25, 0xE0, 0x24, 0x66, 0xFF, 0x12, 0xDC, 0x9A, 0x7B, 0x12, 0x7D, 0x15, 0x12, 0x06, 0xA7, 0x12, 0xDC, 0xA8, 0x80, 0xBD, 0xE4, 0x90, 0xF9, 0x08, 0xF0, 0x12, 0xDC, 0xCD, 0x94, 0x06, 0x40, 0x03, 0x02};
+	BYTE	patP2214H_P72WF[] = {0x25, 0x40, 0x47, 0x47, 0x0C, 0x31, 0x16, 0x16, 0x15, 0x18, 0x29, 0xFF, 0x2E, 0x17, 0x23, 0x15, 0x14, 0x15, 0xFF, 0x1D, 0x20, 0x18, 0x00, 0x08, 0x09, 0x08, 0xFF, 0x39, 0x39, 0xFF, 0x39, 0x39, 0xFF};
+	BYTE	patP2314H_79H3D[] = {0x25, 0x40, 0x47, 0x47, 0x0C, 0x31, 0x16, 0x17, 0x15, 0x18, 0x29, 0xFF, 0x2E, 0x17, 0x35, 0x15, 0x14, 0x15, 0xFF, 0x34, 0x37, 0x2F, 0x0C, 0x1B, 0x1B, 0x19, 0xFF, 0x1B, 0x1D, 0x29, 0x17, 0x25, 0xFF};
+	BYTE	patP2314H_48H1R[] = {0x25, 0x40, 0x47, 0x47, 0x0C, 0x31, 0x16, 0x17, 0x15, 0x18, 0x29, 0xFF, 0x2E, 0x17, 0x35, 0x15, 0x14, 0x15, 0xFF, 0x34, 0x37, 0x2F, 0x0C, 0x1B, 0x1B, 0x19, 0xFF, 0x18, 0x1C, 0x29, 0x15, 0x33, 0xFF};
+
+	int nOffset = 0x4D98F;
+	enModel nModel = UNKNOWN;
+	if (memcmp(&buf[nOffset], patE1715S_xxxxx, sizeof(patE1715S_xxxxx)) ==0) {
+		nModel = E1715S;
+		printf("DELL E1715S\n");
+	}
+	else if (memcmp(&buf[nOffset], patP2214H_P72WF, sizeof(patP2214H_P72WF)) ==0) {
+		nModel = P2214H_P72WF;
+		printf("DELL P2214H P72WF\n");
+	}
+	else if (memcmp(&buf[nOffset], patP2314H_48H1R, sizeof(patP2314H_48H1R)) ==0) {
+		nModel = P2314H_48H1R;
+		printf("DELL P2314H 48H1R\n");
+	}
+	else if (memcmp(&buf[nOffset], patP2314H_79H3D, sizeof(patP2314H_79H3D)) ==0) {
+		nModel = P2314H_79H3D;
+		printf("DELL P2314H 79H3D\n");
+	}
+
+	return nModel;
+}
 
 int RTD2662ModeTableDump(
 const char	*szPath,	//!< i	:
@@ -360,18 +454,7 @@ enMode		nMode		//!< i	:0=Dump 1=Modify 2=Modify4x3 -1=CheckOnly
 		// ﾓﾃﾞﾙ自動判定 ModeTable開始位置から判定 中華液晶基板ではﾌｧｰﾑｳｪｱが頻繁に変わるからあまり意味なし
 		switch (nModeTableStart) {
 		case 0x200A:	// P2214H/P2314H/E1715S
-			if (strstr(szPath, "E1715S")) {	// E1715Sはﾌｧｲﾙ名で判定
-				printf("DELL E1715S\n");
-				model = E1715S;
-			}
-			else if (strstr(szPath, "P2214")) {	// P2214もﾌｧｲﾙ名で判定
-				printf("DELL P2214H\n");
-				model = P2214H;
-			}
-			else {
-				printf("DELL P2314H\n");
-				model = P2314H;
-			}
+			model = JudgeDellModel();
 			break;
 		case 0x32A74:	// 252B9
 			printf("PHILIPS 252B9/11\n");
@@ -497,9 +580,18 @@ enMode		nMode		//!< i	:0=Dump 1=Modify 2=Modify4x3 -1=CheckOnly
 			model = EK271Ebmix;
 			// プリセットテーブルはP2314Hとほぼ同じ
 			break;
+		case 0x52C48:	// Acer EK271Ebmix_2 しげ氏
+			printf("Acer EK271Ebmix_2\n");
+			model = EK271Ebmix_2;
+			break;
 		case 0x42A55:	// Acer EK241YEbmix KAPPY.氏
 			printf("Acer EK241YEbmix\n");
 			model = EK241YEbmix;
+			// プリセットテーブルはP2314Hとほぼ同じ
+			break;
+		case 0x32356:	// Acer EK241YEbmix_2 しげ氏
+			printf("Acer EK241YEbmix_2\n");
+			model = EK241YEbmix_2;
 			// プリセットテーブルはP2314Hとほぼ同じ
 			break;
 		case 0x45DCD:	// Acer QG271Ebmiix てまりあ氏
@@ -568,7 +660,8 @@ enMode		nMode		//!< i	:0=Dump 1=Modify 2=Modify4x3 -1=CheckOnly
 
 #if 1
 		if (nMode == ModeModify && 
-			(model == EK271Ebmix || model == EK241YEbmix || 
+			(model == EK271Ebmix || model == EK271Ebmix_2 || 
+			 model == EK241YEbmix || model == EK241YEbmix_2 || 
 			 model == QG221QHbmiix || model == QG271Ebmiix || 
 			 model == C24M2020DJP || model == C27M2020DJP || 
 			 model == KA222Q || model == KA222Q_2 || 
@@ -592,7 +685,7 @@ enMode		nMode		//!< i	:0=Dump 1=Modify 2=Modify4x3 -1=CheckOnly
 				goto L_FREE;
 			}
 		}
-		else if (nMode == ModeModifyExp && (model == P2214H || model == P2314H)) {
+		else if (nMode == ModeModifyExp && (model == P2214H_P72WF || model == P2314H_48H1R || model == P2314H_79H3D || model == X2377HS)) {
 			if (!AddAspectModeForDell(nMode, model)) {
 				fprintf(stderr, "Fail add aspect mode for dell\n");
 				ret = -14;
@@ -600,7 +693,8 @@ enMode		nMode		//!< i	:0=Dump 1=Modify 2=Modify4x3 -1=CheckOnly
 			}
 		}
 		else if (nMode == ModeModifyExp && 
-				 (model == EK271Ebmix || model == EK241YEbmix || 
+				 (model == EK271Ebmix || model == EK271Ebmix_2 || 
+				  model == EK241YEbmix || model == EK241YEbmix_2 || 
 				  model == QG221QHbmiix || model == QG271Ebmiix ||
 	 			  model == C24M2020DJP || model == C27M2020DJP || 
 				  model == KA222Q || model == KA222Q_2 || 

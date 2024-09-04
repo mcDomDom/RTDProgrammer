@@ -52,7 +52,7 @@ bool ModifyFirmware(enModel model)
 	}
 
 	nPosVHeightCheck2 = -1;
-	if (model == P2214H || model == P2314H) {	// P2214H/P2314H‚Í‚±‚¿‚ç
+	if (model == P2214H_P72WF || model == P2314H_48H1R || model == P2314H_79H3D) {	// P2214H/P2314H‚Í‚±‚¿‚ç
 		BYTE	keyVHeightCheck1[] = {0xC3, 0xE5, 0x5A, 0x94, 0xF0};
 		BYTE	keyVHeightCheck2[] = {0xC3, 0xE5, 0x56, 0x94, 0xEF};
 		nPosVHeightCheck = FindKey(keyVHeightCheck1, 5);
@@ -200,9 +200,17 @@ bool DisableAcerAspectChangeCheck(enModel model)
 		nOffset[0] = 0x5cbe9;
 		nOffset[1] = 0x5cc25;
 	}
+	else if (model == EK241YEbmix_2) {
+		nOffset[0] = 0x5abe1;
+		nOffset[1] = 0x5ac22;
+	}
 	else if (model == EK271Ebmix) {
 		nOffset[0] = 0x4b079;
 		nOffset[1] = 0x4b0b5;
+	}
+	else if (model == EK271Ebmix_2) {
+		nOffset[0] = 0x5b9eb;
+		nOffset[1] = 0x5ba2c;
 	}
 	else if (model == QG221QHbmiix) {
 		nOffset[0] = 0x6a191;
@@ -259,8 +267,14 @@ void OutputISTPTR(enModel model, int &nOffset)
 	if (model == EK241YEbmix) {
 		buf[nOffset++] = 0x12;	buf[nOffset++] = 0x17;	buf[nOffset++] = 0xBA;
 	}
+	else if (model == EK241YEbmix_2) {
+		buf[nOffset++] = 0x12;	buf[nOffset++] = 0x13;	buf[nOffset++] = 0xD5;
+	}
 	else if (model == EK271Ebmix) {
 		buf[nOffset++] = 0x12;	buf[nOffset++] = 0x17;	buf[nOffset++] = 0x66;
+	}
+	else if (model == EK271Ebmix_2) {
+		buf[nOffset++] = 0x12;	buf[nOffset++] = 0x17;	buf[nOffset++] = 0x7E;
 	}
 	else if (model == QG221QHbmiix) {
 		buf[nOffset++] = 0x12;	buf[nOffset++] = 0x18;	buf[nOffset++] = 0x51;
@@ -299,9 +313,17 @@ int GetAspectFunctionOffset(enModel model, int &nOffsetRet)
 		nOffset = 0x2f225;
 		nOffsetRet = 0x2f26c;
 	}
+	else if (model == EK241YEbmix_2) {
+		nOffset = 0x2e8ca;
+		nOffsetRet = 0x2e913;
+	}
 	else if (model == EK271Ebmix) {
 		nOffset = 0x2f486;
 		nOffsetRet = 0x2f4cd;
+	}
+	else if (model == EK271Ebmix_2) {
+		nOffset = 0x3f1fa;
+		nOffsetRet = 0x3f243;
 	}
 	else if (model == QG221QHbmiix) {
 		nOffset = 0x2f156;
@@ -343,8 +365,11 @@ int GetAspectFunctionOffset(enModel model, int &nOffsetRet)
 
 bool OutputMovDPTRInputVHeight(enModel model, int &nOffset)
 {
-	if (model == EK241YEbmix || model == EK271Ebmix || model == EK221QE3bi) {
+	if (model == EK241YEbmix || model == EK271Ebmix || model == EK271Ebmix_2 || model == EK221QE3bi) {
 		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE3;	buf[nOffset++] = 0xDD;	// MOV DPTR,Input Height
+	}
+	else if (model == EK241YEbmix_2) {
+		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE3;	buf[nOffset++] = 0xBF;	// MOV DPTR,Input Height
 	}
 	else if (model == QG221QHbmiix || model == QG271Ebmiix) {
 		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE4;	buf[nOffset++] = 0xC4;	// MOV DPTR,Input Height
@@ -386,8 +411,11 @@ bool SetAcerWideModeFunction(enMode mode, enModel model, int &nOffset, int nOffs
 	}
 
 	// Input Width
-	if (model == EK241YEbmix || model == EK271Ebmix || model == EK221QE3bi) {
+	if (model == EK241YEbmix || model == EK271Ebmix || model == EK271Ebmix_2 || model == EK221QE3bi) {
 		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE3;	buf[nOffset++] = 0xD1;	// MOV DPTR,Input Width
+	}
+	else if (model == EK241YEbmix_2) {
+		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE3;	buf[nOffset++] = 0xB3;	// MOV DPTR,Input Width
 	}
 	else if (model == QG221QHbmiix || model == QG271Ebmiix) {
 		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE4;	buf[nOffset++] = 0xB8;	// MOV DPTR,Input Width
@@ -441,8 +469,11 @@ bool SetAcerWideModeFunction(enMode mode, enModel model, int &nOffset, int nOffs
 	}
 
 	// Check Interlace Flag?
-	if (model == EK241YEbmix || model == EK271Ebmix || model == EK221QE3bi) {
+	if (model == EK241YEbmix || model == EK271Ebmix || model == EK271Ebmix_2 || model == EK221QE3bi) {
 		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE3;	buf[nOffset++] = 0x65;	// MOV DPTR,Interlace Flag
+	}
+	else  if (model == EK241YEbmix_2) {
+		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE1;	buf[nOffset++] = 0xC8;	// MOV DPTR,Interlace Flag
 	}
 	else  if (model == QG221QHbmiix || model == QG271Ebmiix) {
 		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE4;	buf[nOffset++] = 0x4C;	// MOV DPTR,Interlace Flag
@@ -471,7 +502,8 @@ bool SetAcerWideModeFunction(enMode mode, enModel model, int &nOffset, int nOffs
 		(model == QG221QHbmiix || model == QG271Ebmiix ||
 		 model == C24M2020DJP || model == C27M2020DJP || 
 		 model == KA222Q || model == KA222Q_2 ||
-		 model == LHRD56_IPAD97 || model == CB272Ebmiprx)) {
+		 model == LHRD56_IPAD97 || model == CB272Ebmiprx || 
+		 model == EK241YEbmix_2 || model == EK271Ebmix_2)) {
 		// CheckInterlaceFlag‚ª“WŠJ‚³‚ê‚Ä‚¢‚é
 		buf[nOffset++] = 0x13;													// RRC
 		buf[nOffset++] = 0x13;													// RRC
@@ -749,11 +781,23 @@ bool AddAspectModeForAcer(enMode mode, enModel model)
 		// Bank6
 		buf[nCallOffset+3] = 0x04;	buf[nCallOffset+4] = 0x55;
 	}
+	else if (model == EK241YEbmix_2) {
+		nOffset = 0x6FC00;
+		nCallOffset = 0x30751;
+		// Bank6
+		buf[nCallOffset+3] = 0x02;	buf[nCallOffset+4] = 0x0A;
+	}
 	else if (model == EK271Ebmix) {
 		nOffset = 0x6FC00;
 		nCallOffset = 0x30A4A;
 		// Bank6
 		buf[nCallOffset+3] = 0x04;	buf[nCallOffset+4] = 0x55;
+	}
+	else if (model == EK271Ebmix_2) {
+		nOffset = 0x6FC00;
+		nCallOffset = 0x20A26;
+		// Bank6
+		buf[nCallOffset+3] = 0x04;	buf[nCallOffset+4] = 0x43;
 	}
 	else if (model == KA222Q) {
 		nOffset = 0x5FC00;
@@ -807,8 +851,11 @@ bool AddAspectModeForAcer(enMode mode, enModel model)
 	if (model == CB272Ebmiprx) {
 		buf[nOffset++]=0x90;	buf[nOffset++]=0xE1;	buf[nOffset++]=0xB5;	// MOV	 DPTR,#0xE1B5
 	}
-	else if (model == EK221QE3bi || model == EK241YEbmix || model == EK271Ebmix) {
+	else if (model == EK221QE3bi || model == EK241YEbmix || model == EK271Ebmix || model == EK271Ebmix_2) {
 		buf[nOffset++]=0x90;	buf[nOffset++]=0xE0;	buf[nOffset++]=0x88;	// MOV	 DPTR,#0xE088
+	}
+	else if (model == EK241YEbmix_2) {
+		buf[nOffset++]=0x90;	buf[nOffset++]=0xE0;	buf[nOffset++]=0x87;	// MOV	 DPTR,#0xE087
 	}
 	else if (model == KA222Q || model == KA222Q_2) {
 		buf[nOffset++]=0x90;	buf[nOffset++]=0xE2;	buf[nOffset++]=0x87;	// MOV	 DPTR,#0xE287
@@ -849,15 +896,25 @@ bool AddAspectModeForDell(enMode mode, enModel model)
 	char	szBinName[_MAX_PATH];
 	int		nFuncOffset, nCallOffset;
 	BYTE	bAddr[2];
-	if (model == P2214H) {
+	if (model == P2214H_P72WF) {	// P2214H/P2314H‚Í‚±‚¿‚ç
 		nFuncOffset = 0x1FA00;
 		nCallOffset = 0x1F9B1;
-		strcpy(szBinName, "p2214aspect.bin");
+		strcpy(szBinName, "P2214H_P72WF.bin");
 	}
-	else if (model == P2314H) {
+	else if (model == P2314H_48H1R) {
 		nFuncOffset = 0x1FA00;
 		nCallOffset = 0x1CFFC;
-		strcpy(szBinName, "p2314aspect.bin");
+		strcpy(szBinName, "P2314H_48H1R.bin");
+	}
+	else if (model == P2314H_79H3D) {
+		nFuncOffset = 0x1FA00;
+		nCallOffset = 0x1D21E;
+		strcpy(szBinName, "P2314H_79H3D.bin");
+	}
+	else if (model == X2377HS) {
+		nFuncOffset = 0x2FA00;
+		nCallOffset = 0x0699F;
+		strcpy(szBinName, "X2377HS.bin");
 	}
 	else {
 		printf("Invlid model\n");
