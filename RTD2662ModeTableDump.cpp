@@ -649,6 +649,11 @@ enMode		nMode		//!< i	:0=Dump 1=Modify 2=Modify4x3 -1=CheckOnly
 			model = X2377HS;
 			nIdxNo[X68_FZ24K] = 43;		// 43:1152x900 61.8KHz/66Hz
 			break;
+		case 0x527F6:	// Acer CB242YEbmiprx
+			printf("Acer CB242YEbmiprx\n");
+			model = CB242YEbmiprx;
+			// プリセットテーブルはP2314Hとほぼ同じ
+			break;
 		case 0x527E2:	// Acer CB272Ebmiprx AKT氏
 			printf("Acer CB272Ebmiprx\n");
 			model = CB272Ebmiprx;
@@ -704,7 +709,7 @@ enMode		nMode		//!< i	:0=Dump 1=Modify 2=Modify4x3 -1=CheckOnly
 				  model == QG221QHbmiix || model == QG271Ebmiix ||
 	 			  model == C24M2020DJP || model == C27M2020DJP || 
 				  model == KA222Q || model == KA222Q_2 || 
-				  model == EK221QE3bi || model == CB272Ebmiprx)) {
+				  model == EK221QE3bi || model == CB242YEbmiprx || model == CB272Ebmiprx)) {
 			if (DisableAcerAspectChangeCheck(model)) {
 				if (!AddAspectModeForAcer(nMode, model)) {
 					fprintf(stderr, "Fail add aspect mode for acer\n");

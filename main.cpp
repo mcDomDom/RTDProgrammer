@@ -442,7 +442,7 @@ bool ProgramFlash(const char *input_file_name, uint32_t chip_size, enModel model
 			 model == C24M2020DJP || model == C27M2020DJP || 
 			 model == KA222Q || model == KA222Q_2 ||
 			 model == EK221QE3bi ||
-			 model == CB272Ebmiprx) {
+			 model == CB242YEbmiprx || model == CB272Ebmiprx) {
 		reg = 0x1D;
 	}
 	if (0 <= wp) reg = wp;

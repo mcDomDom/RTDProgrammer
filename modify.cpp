@@ -244,6 +244,10 @@ bool DisableAcerAspectChangeCheck(enModel model)
 		nOffset[0] = 0x5ce60;
 		nOffset[1] = 0x5ce9c;
 	}
+	else if (model == CB242YEbmiprx) {
+		nOffset[0] = 0x7b3a6;
+		nOffset[1] = 0x7b3e7;
+	}
 	else if (model == CB272Ebmiprx) {
 		nOffset[0] = 0x7b3e7;
 		nOffset[1] = 0x7b428;
@@ -304,6 +308,9 @@ void OutputISTPTR(enModel model, int &nOffset)
 	else if (model == LHRD56_IPAD97) {
 		buf[nOffset++] = 0x12;	buf[nOffset++] = 0x12;	buf[nOffset++] = 0xB8;
 	}
+	else if (model == CB242YEbmiprx) {
+		buf[nOffset++] = 0x12;	buf[nOffset++] = 0x17;	buf[nOffset++] = 0x36;
+	}
 	else if (model == CB272Ebmiprx) {
 		buf[nOffset++] = 0x12;	buf[nOffset++] = 0x17;	buf[nOffset++] = 0x24;
 	}
@@ -361,6 +368,10 @@ int GetAspectFunctionOffset(enModel model, int &nOffsetRet)
 		nOffset = 0x2f56c;
 		nOffsetRet = 0x2f5b3;
 	}
+	else if (model == CB242YEbmiprx) {
+		nOffset = 0x2f156;
+		nOffsetRet = 0x2f18e;
+	}
 	else if (model == CB272Ebmiprx) {
 		nOffset = 0x2f147;
 		nOffsetRet = 0x2f17f;
@@ -394,7 +405,7 @@ bool OutputMovDPTRInputVHeight(enModel model, int &nOffset)
 	else if (model == LHRD56_IPAD97) {
 		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xD8;	buf[nOffset++] = 0xBA;	// MOV DPTR,Input Height
 	}
-	else if (model == CB272Ebmiprx) {
+	else if (model == CB242YEbmiprx || model == CB272Ebmiprx) {
 		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE4;	buf[nOffset++] = 0x03;	// MOV DPTR,Input Height
 	}
 	else {
@@ -440,7 +451,7 @@ bool SetAcerWideModeFunction(enMode mode, enModel model, int &nOffset, int nOffs
 	else if (model == LHRD56_IPAD97) {
 		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xD8;	buf[nOffset++] = 0xB0;	// MOV DPTR,Input Width
 	}
-	else if (model == CB272Ebmiprx) {
+	else if (model == CB242YEbmiprx || model == CB272Ebmiprx) {
 		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE3;	buf[nOffset++] = 0xF7;	// MOV DPTR,Input Width
 	}
 	else {
@@ -498,7 +509,7 @@ bool SetAcerWideModeFunction(enMode mode, enModel model, int &nOffset, int nOffs
 	else  if (model == LHRD56_IPAD97) {
 		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xD8;	buf[nOffset++] = 0xAB;	// MOV DPTR,Interlace Flag
 	}
-	else  if (model == CB272Ebmiprx) {
+	else  if (model == CB242YEbmiprx || model == CB272Ebmiprx) {
 		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE3;	buf[nOffset++] = 0x8D;	// MOV DPTR,Interlace Flag
 	}
 	else {
@@ -510,7 +521,7 @@ bool SetAcerWideModeFunction(enMode mode, enModel model, int &nOffset, int nOffs
 		(model == QG221QHbmiix || model == QG271Ebmiix ||
 		 model == C24M2020DJP || model == C27M2020DJP || 
 		 model == KA222Q || model == KA222Q_2 ||
-		 model == LHRD56_IPAD97 || model == CB272Ebmiprx || 
+		 model == LHRD56_IPAD97 || model == CB242YEbmiprx || model == CB272Ebmiprx || 
 		 model == EK241YEbmix_2 || model == EK271Ebmix_2 || model == EK271Ebmix_3)) {
 		// CheckInterlaceFlagが展開されている
 		buf[nOffset++] = 0x13;													// RRC
@@ -763,7 +774,7 @@ bool AddAspectMode(enMode mode, enModel model)
 }
 
 // 空き領域にアスペクト比取得関数を追加し、そちらを呼び出すようにする(実験中)
-// CB272Ebmiprxは元の領域サイズが小さく書き換えできないのでこちらを使用
+// CB242YEbmiprxとCB272Ebmiprxは元の領域サイズが小さく書き換えできないのでこちらを使用
 // X68000の1024x424は4:3表示することで対応
 bool AddAspectModeForAcer(enMode mode, enModel model)
 {
@@ -771,7 +782,13 @@ bool AddAspectModeForAcer(enMode mode, enModel model)
 	BYTE	bAddr[2];
 
 	// アスペクト比取得関数呼び出し先変更
-	if (model == CB272Ebmiprx) {
+	if (model == CB242YEbmiprx) {
+		nOffset = 0x7FC00;
+		nCallOffset = 0x30AAC;
+		// Bank7
+		buf[nCallOffset+3] = 0x02;	buf[nCallOffset+4] = 0x9B;
+	}
+	else if (model == CB272Ebmiprx) {
 		nOffset = 0x7FC00;
 		nCallOffset = 0x30AA0;
 		// Bank7
@@ -862,7 +879,7 @@ bool AddAspectModeForAcer(enMode mode, enModel model)
 		return false;
 	}
 	// 退避していた第2引数用情報をR2/R3/R7に復元？
-	if (model == CB272Ebmiprx) {
+	if (model == CB242YEbmiprx || model == CB272Ebmiprx) {
 		buf[nOffset++]=0x90;	buf[nOffset++]=0xE1;	buf[nOffset++]=0xB5;	// MOV	 DPTR,#0xE1B5
 	}
 	else if (model == EK221QE3bi || model == EK241YEbmix || 

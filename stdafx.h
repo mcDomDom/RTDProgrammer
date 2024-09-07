@@ -43,6 +43,7 @@ enum enModel
 	JG2555TC_IPAD97,	// JG2555TC iPadŠî”Â Thanks Newman -> KVC 9.7 iPad‰t»(KCL-97DHS9) MJŽî•ñ’ñ‹Ÿ‚ ‚è‚ª‚Æ‚¤‚²‚´‚¢‚Ü‚· 
 	Cocoper133,			// Cocoper 13.3 ƒCƒJæ¶Žî•ñ’ñ‹Ÿ‚ ‚è‚ª‚Æ‚¤‚²‚´‚¢‚Ü‚·
 	CZ617Ph,			// Cocoper CZ-617Ph ‚Ó‚ä‚«Žî•ñ’ñ‹Ÿ‚ ‚è‚ª‚Æ‚¤‚²‚´‚¢‚Ü‚·
+	CB242YEbmiprx,		// Acer CB242YEbmiprx
 	CB272Ebmiprx,		// Acer CB272Ebmiprx AKTŽî•ñ’ñ‹Ÿ‚ ‚è‚ª‚Æ‚¤‚²‚´‚¢‚Ü‚·
 	EK221QE3bi,			// Acer EK221QE3bi tomo_retroŽî•ñ’ñ‹Ÿ‚ ‚è‚ª‚Æ‚¤‚²‚´‚¢‚Ü‚·
 	EK241YEbmix,		// Acer EK241YEbmix KAPPY.Žî•ñ’ñ‹Ÿ‚ ‚è‚ª‚Æ‚¤‚²‚´‚¢‚Ü‚·
