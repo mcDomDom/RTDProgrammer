@@ -367,6 +367,35 @@ enModel JudgeDellModel()
 	return nModel;
 }
 
+bool IsAcerModel(
+enMode		nMode, 
+enModel		model
+)
+{
+	bool bRet = false;
+
+	if (nMode == ModeModify && 
+			(model == EK271Ebmix || model == EK271Ebmix_2 || model == EK271Ebmix_3 || 
+			 model == EK241YEbmix || model == EK241YEbmix_2 || 
+			 model == QG221QHbmiix || model == QG271Ebmiix || 
+			 model == C24M2020DJP || model == C27M2020DJP || 
+			 model == KA222Q || model == KA222Q_2 || 
+			 model == EK221QE3bi)) {
+		bRet = true;
+	}
+	else if (nMode == ModeModifyExp && 
+				 (model == EK271Ebmix || model == EK271Ebmix_2 || model == EK271Ebmix_3 || 
+				  model == EK241YEbmix || model == EK241YEbmix_2 || 
+				  model == QG221QHbmiix || model == QG271Ebmiix ||
+	 			  model == C24M2020DJP || model == C27M2020DJP || 
+				  model == KA222Q || model == KA222Q_2 || 
+				  model == EK221QE3bi || model == CB242YEbmiprx || model == CB272Ebmiprx)) {
+		bRet = true;
+	}
+	
+	return true;
+}
+
 int RTD2662ModeTableDump(
 const char	*szPath,	//!< i	:
 enMode		nMode		//!< i	:0=Dump 1=Modify 2=Modify4x3 -1=CheckOnly
@@ -670,13 +699,7 @@ enMode		nMode		//!< i	:0=Dump 1=Modify 2=Modify4x3 -1=CheckOnly
 		model != UNKNOWN && model != RTD2668) {
 
 #if 1
-		if (nMode == ModeModify && 
-			(model == EK271Ebmix || model == EK271Ebmix_2 || model == EK271Ebmix_3 || 
-			 model == EK241YEbmix || model == EK241YEbmix_2 || 
-			 model == QG221QHbmiix || model == QG271Ebmiix || 
-			 model == C24M2020DJP || model == C27M2020DJP || 
-			 model == KA222Q || model == KA222Q_2 || 
-			 model == EK221QE3bi)) {
+		if (nMode == ModeModify && IsAcerModel(nMode, model)) {
 			if (DisableAcerAspectChangeCheck(model)) {
 				if (!ModifyAcerWideModeFunction(nMode, model)) {
 					fprintf(stderr, "Fail modify acer wide mode function\n");
@@ -703,13 +726,7 @@ enMode		nMode		//!< i	:0=Dump 1=Modify 2=Modify4x3 -1=CheckOnly
 				goto L_FREE;
 			}
 		}
-		else if (nMode == ModeModifyExp && 
-				 (model == EK271Ebmix || model == EK271Ebmix_2 || model == EK271Ebmix_3 || 
-				  model == EK241YEbmix || model == EK241YEbmix_2 || 
-				  model == QG221QHbmiix || model == QG271Ebmiix ||
-	 			  model == C24M2020DJP || model == C27M2020DJP || 
-				  model == KA222Q || model == KA222Q_2 || 
-				  model == EK221QE3bi || model == CB242YEbmiprx || model == CB272Ebmiprx)) {
+		else if (nMode == ModeModifyExp && IsAcerModel(nMode, model)) {
 			if (DisableAcerAspectChangeCheck(model)) {
 				if (!AddAspectModeForAcer(nMode, model)) {
 					fprintf(stderr, "Fail add aspect mode for acer\n");
@@ -750,9 +767,10 @@ enMode		nMode		//!< i	:0=Dump 1=Modify 2=Modify4x3 -1=CheckOnly
 		SetParameter<T_Info>(nIdxNo[M72_RTYPE],		0x0F,  768, 256, 157, 550, 5, 5, 1024, 284, 156, 24);		// R-TYPE基板 15.7KHz/55Hz KAPPY.さん提供
 		SetParameter<T_Info>(nIdxNo[FMT_LINUX],		0x0F,  768, 512, 311, 579, 3, 3,  920, 538, 138, 26);		// TOWNS LINUXコンソール プーさん提供
 
-		if (model == X2377HS) {	// ライフフォース基板がどちらのプリセット適用されているかチェック
-			SetParameter<T_Info>(87,		0x0F,  644, 240, 157, 600, 5, 5,  760, 262,  98, 20);		// Generic 240p
-			SetParameter<T_Info>(139,		0x0F,  648, 240, 157, 600, 5, 5,  760, 262,  98, 20);		// Generic 240p
+		if (nMode == ModeModifyExp && IsAcerModel(nMode, model)) {	// Acer機 1440x240 15kHz/60Hzのプリセットを640x240にしてAspect対応
+			printf("Acer H:15KHz/V:60Hz 240p/480i 1440x240->640x240 (Experimental)\n");
+			SetParameter<T_Info>(87,		0x0F,  644, 240, 157, 600, 5, 5,  760, 262,  98, 20);		// Generic 240p/480i
+			SetParameter<T_Info>(139,		0x0F,  640, 240, 157, 600, 5, 5,  760, 262,  98, 20);		// Generic 240p/480i PS2はこちらが使われるっぽい？
 		}
 		if (model == V_M56VDA_IPAD97) {	// ウォーリアブレードがどのプリセット使われるか調査用
 			SetParameter<T_Info>(86 ,		0x0F,  644, 240, 157, 600,  5,  5,  760, 262,  98, 20);		// 1440x240 15.7KHz 60Hz 262(Generic 240p)
