@@ -586,6 +586,10 @@ enMode		nMode		//!< i	:0=Dump 1=Modify 2=Modify4x3 -1=CheckOnly
 			printf("Acer EK271Ebmix_2\n");
 			model = EK271Ebmix_2;
 			break;
+		case 0x52A15:	// Acer EK271Ebmix_3 Shuripon Ž
+			printf("Acer EK271Ebmix_3\n");
+			model = EK271Ebmix_3;
+			break;
 		case 0x42A55:	// Acer EK241YEbmix KAPPY.Ž
 			printf("Acer EK241YEbmix\n");
 			model = EK241YEbmix;
@@ -662,7 +666,7 @@ enMode		nMode		//!< i	:0=Dump 1=Modify 2=Modify4x3 -1=CheckOnly
 
 #if 1
 		if (nMode == ModeModify && 
-			(model == EK271Ebmix || model == EK271Ebmix_2 || 
+			(model == EK271Ebmix || model == EK271Ebmix_2 || model == EK271Ebmix_3 || 
 			 model == EK241YEbmix || model == EK241YEbmix_2 || 
 			 model == QG221QHbmiix || model == QG271Ebmiix || 
 			 model == C24M2020DJP || model == C27M2020DJP || 
@@ -695,7 +699,7 @@ enMode		nMode		//!< i	:0=Dump 1=Modify 2=Modify4x3 -1=CheckOnly
 			}
 		}
 		else if (nMode == ModeModifyExp && 
-				 (model == EK271Ebmix || model == EK271Ebmix_2 || 
+				 (model == EK271Ebmix || model == EK271Ebmix_2 || model == EK271Ebmix_3 || 
 				  model == EK241YEbmix || model == EK241YEbmix_2 || 
 				  model == QG221QHbmiix || model == QG271Ebmiix ||
 	 			  model == C24M2020DJP || model == C27M2020DJP || 

@@ -47,8 +47,9 @@ enum enModel
 	EK221QE3bi,			// Acer EK221QE3bi tomo_retroî•ñ’ñ‹Ÿ‚ ‚è‚ª‚Æ‚¤‚²‚´‚¢‚Ü‚·
 	EK241YEbmix,		// Acer EK241YEbmix KAPPY.î•ñ’ñ‹Ÿ‚ ‚è‚ª‚Æ‚¤‚²‚´‚¢‚Ü‚·
 	EK241YEbmix_2,		// Acer EK241YEbmix_2 ‚µ‚°î•ñ’ñ‹Ÿ‚ ‚è‚ª‚Æ‚¤‚²‚´‚¢‚Ü‚·
-	EK271Ebmix_2,		// Acer EK271Ebmix_2 ‚µ‚°î•ñ’ñ‹Ÿ‚ ‚è‚ª‚Æ‚¤‚²‚´‚¢‚Ü‚·
 	EK271Ebmix,			// Acer EK271Ebmix KAPPY.î•ñ’ñ‹Ÿ‚ ‚è‚ª‚Æ‚¤‚²‚´‚¢‚Ü‚·
+	EK271Ebmix_2,		// Acer EK271Ebmix_2 ‚µ‚°î•ñ’ñ‹Ÿ‚ ‚è‚ª‚Æ‚¤‚²‚´‚¢‚Ü‚·
+	EK271Ebmix_3,		// Acer EK271Ebmix_3 Shuriponî•ñ’ñ‹Ÿ‚ ‚è‚ª‚Æ‚¤‚²‚´‚¢‚Ü‚·
 	KA222Q,				// Acer KA222Q CAT-2î•ñ’ñ‹Ÿ‚ ‚è‚ª‚Æ‚¤‚²‚´‚¢‚Ü‚·
 	KA222Q_2,			// Acer KA222Q_2 SATOSHIî•ñ’ñ‹Ÿ‚ ‚è‚ª‚Æ‚¤‚²‚´‚¢‚Ü‚·
 	QG221QHbmiix,		// Acer QG221QHbmiix KAPPY.î•ñ’ñ‹Ÿ‚ ‚è‚ª‚Æ‚¤‚²‚´‚¢‚Ü‚·
