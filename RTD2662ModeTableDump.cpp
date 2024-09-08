@@ -767,7 +767,7 @@ enMode		nMode		//!< i	:0=Dump 1=Modify 2=Modify4x3 -1=CheckOnly
 		SetParameter<T_Info>(nIdxNo[M72_RTYPE],		0x0F,  768, 256, 157, 550, 5, 5, 1024, 284, 156, 24);		// R-TYPE基板 15.7KHz/55Hz KAPPY.さん提供
 		SetParameter<T_Info>(nIdxNo[FMT_LINUX],		0x0F,  768, 512, 311, 579, 3, 3,  920, 538, 138, 26);		// TOWNS LINUXコンソール プーさん提供
 
-		if (nMode == ModeModifyExp && IsAcerModel(nMode, model)) {	// Acer機 1440x240 15kHz/60Hzのプリセットを640x240にしてAspect対応
+		if (nMode == ModeModifyExp && ((IsAcerModel(nMode, model) && model != QG271Ebmiix) || model == X2377HS)) {	// Acer機とX2377HS 1440x240 15kHz/60Hzのプリセットを640x240にしてAspect対応
 			printf("Acer H:15KHz/V:60Hz 240p/480i 1440x240->640x240 (Experimental)\n");
 			SetParameter<T_Info>(87,		0x0F,  644, 240, 157, 600, 5, 5,  760, 262,  98, 20);		// Generic 240p/480i
 			SetParameter<T_Info>(139,		0x0F,  640, 240, 157, 600, 5, 5,  760, 262,  98, 20);		// Generic 240p/480i PS2はこちらが使われるっぽい？
