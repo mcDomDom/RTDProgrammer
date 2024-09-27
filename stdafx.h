@@ -32,7 +32,9 @@ enum enModel
 	E1715S,				// DELL E1715S tsutsui氏情報提供ありがとうございます
 	P2214H_P72WF,		// DELL P2214H P72WF
 	P2314H_48H1R,		// DELL P2314H 48H1R
-	P2314H_79H3D,		// DELL P2214H 79H3D
+	P2314H_48H1R_A01,	// DELL P2314H 48H1R A01 もより氏情報提供ありがとうございます
+	P2314H_79H3D,		// DELL P2314H 79H3D
+	P2314H_79H3D_B01,	// DELL P2314H 79H3D B01 もより氏情報提供ありがとうございます
 	PHI_252B9,			// PHILIPS 252B9/11
 	LHRD56_IPAD97,		// 青ジャック基板にiPad 9.7型液晶を使用した15KHzモニタ用→なんか良い愛称ないんでしょうか
 	LHRD56_IPAD97_POO,	// 青ジャック基板にiPad 9.7型液晶を使用した15KHzモニタ用(別版) プー氏情報提供ありがとうございます

@@ -52,7 +52,9 @@ bool ModifyFirmware(enModel model)
 	}
 
 	nPosVHeightCheck2 = -1;
-	if (model == P2214H_P72WF || model == P2314H_48H1R || model == P2314H_79H3D) {	// P2214H/P2314H‚Í‚±‚¿‚ç
+	if (model == P2214H_P72WF || 
+		model == P2314H_48H1R || model == P2314H_48H1R_A01 ||
+		model == P2314H_79H3D || model == P2314H_79H3D_B01 ) {	// P2214H/P2314H‚Í‚±‚¿‚ç
 		BYTE	keyVHeightCheck1[] = {0xC3, 0xE5, 0x5A, 0x94, 0xF0};
 		BYTE	keyVHeightCheck2[] = {0xC3, 0xE5, 0x56, 0x94, 0xEF};
 		nPosVHeightCheck = FindKey(keyVHeightCheck1, 5);
@@ -931,17 +933,27 @@ bool AddAspectModeForDell(enMode mode, enModel model)
 	if (model == P2214H_P72WF) {	// P2214H/P2314H‚Í‚±‚¿‚ç
 		nFuncOffset = 0x1FA00;
 		nCallOffset = 0x1F9B1;
-		strcpy(szBinName, "P2214H_P72WF.bin");
+		strcpy(szBinName, "P2214H.bin");
 	}
 	else if (model == P2314H_48H1R) {
 		nFuncOffset = 0x1FA00;
 		nCallOffset = 0x1CFFC;
-		strcpy(szBinName, "P2314H_48H1R.bin");
+		strcpy(szBinName, "P2314H.bin");
+	}
+	else if (model == P2314H_48H1R_A01) {
+		nFuncOffset = 0x1FA00;
+		nCallOffset = 0x1D038;
+		strcpy(szBinName, "P2314H.bin");
 	}
 	else if (model == P2314H_79H3D) {
 		nFuncOffset = 0x1FA00;
 		nCallOffset = 0x1D21E;
-		strcpy(szBinName, "P2314H_79H3D.bin");
+		strcpy(szBinName, "P2314H.bin");
+	}
+	else if (model == P2314H_79H3D_B01) {
+		nFuncOffset = 0x1FA00;
+		nCallOffset = 0x1D26F;
+		strcpy(szBinName, "P2314H.bin");
 	}
 	else if (model == X2377HS) {
 		nFuncOffset = 0x2FA00;
