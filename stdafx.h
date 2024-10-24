@@ -60,6 +60,7 @@ enum enModel
 	C24M2020DJP,		// Amazon C24M2020DJP ‚¦‚­‚µ‚ÑŽî•ñ’ñ‹Ÿ‚ ‚è‚ª‚Æ‚¤‚²‚´‚¢‚Ü‚·
 	C27M2020DJP,		// Amazon C27M2020DJP ‚Ý‚äŽî•ñ’ñ‹Ÿ‚ ‚è‚ª‚Æ‚¤‚²‚´‚¢‚Ü‚·
 	X2377HS,			// iiyama X2377HS KAPPY.Žî•ñ’ñ‹Ÿ‚ ‚è‚ª‚Æ‚¤‚²‚´‚¢‚Ü‚·
+	WIMAXIT				// WIMAXIT FW:V001 —kŽè—ßŽî•ñ’ñ‹Ÿ‚ ‚è‚ª‚Æ‚¤‚²‚´‚¢‚Ü‚·
 };
 
 enum enMode

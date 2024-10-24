@@ -633,6 +633,11 @@ enMode		nMode		//!< i	:0=Dump 1=Modify 2=Modify4x3 -1=CheckOnly
 			nIdxNo[M72_RTYPE] = 30;		// 1152x864
 			nIdxNo[MVS] = 31;			// 1152x864
 			break;
+		case 0x42734:	// WIMAXIT FW:V001  楊手令 氏
+			printf("WIMAXIT FW:V001\n");
+			model = WIMAXIT;
+			// プリセットテーブルはP2314Hとほぼ同じ
+			break;
 		case 0x52A4A:	// Acer EK271Ebmix KAPPY.氏
 			printf("Acer EK271Ebmix\n");
 			model = EK271Ebmix;
@@ -854,6 +859,41 @@ enMode		nMode		//!< i	:0=Dump 1=Modify 2=Modify4x3 -1=CheckOnly
 			fprintf(stderr, "can't open %s\n", szFilePath);
 			ret = -21;
 		}
+	}
+	else if (nMode == ModeModify && model == RTD2668) {
+		printf("RTD2668 Modify\n");
+		SetParameter<T_Info_23>(nIdxNo[X68_15K_P],		0x0F,  640, 240, 159, 615, 5, 5,  760, 262,  98, 20);		// X68000  512x240 15KHz
+		SetParameter<T_Info_23>(nIdxNo[X68_24K_P],		0x0F, 1024, 424, 246, 532, 5, 5, 1408, 465, 282, 23);		// X68000 1024x424 24KHz
+		SetParameter<T_Info_23>(nIdxNo[X68_31K],		0x0F,  768, 512, 314, 554, 5, 5, 1104, 568, 261, 32);		// X68000  768x512 31KHz
+		SetParameter<T_Info_23>(nIdxNo[X68_Memtest],	0x0F,  768, 512, 340, 554, 5, 5, 1130, 613, 320, 41);		// X68000 memtest 31KHz
+		SetParameter<T_Info_23>(nIdxNo[X68_Dash],		0x0F,  768, 536, 315, 543, 5, 5, 1176, 580, 308, 38);		// X68000 ダッシュ野郎
+		//FantasyZone 31KHz 現状ダッシュ野郎のプリセットが適用されている？
+		SetParameter<T_Info_23>(nIdxNo[X68_FZ31K],		0x0F,  644, 448, 311, 547, 3, 3, 1100, 568, 261, 90);		// X68000 Fantasy Zone 31KHz
+		//SetParameter<T_Info_23>(nIdxNo[X68_FZ31K],		0x0F,  764, 512, 311, 547, 3, 3, 1104, 568, 261, 32);		// X68000  768x512 31KHz
+		SetParameter<T_Info_23>(nIdxNo[FMT_Raiden],	0x0F,  768, 512, 323, 603, 3, 3, 1104, 536, 240, 19);		// TOWNS 雷電伝説
+		SetParameter<T_Info_23>(nIdxNo[M72_RTYPE],		0x0F,  768, 256, 157, 550, 5, 5, 1024, 284, 156, 24);		// R-TYPE基板 15.7KHz/55Hz KAPPY.さん提供
+		SetParameter<T_Info_23>(nIdxNo[FMT_LINUX],		0x0F,  768, 512, 311, 579, 3, 3,  920, 538, 138, 26);		// TOWNS LINUXコンソール プーさん提供
+		SetParameter<T_Info_23>(nIdxNo[X68_FZ24K],		0x0F,  640, 448, 241, 516, 5, 5,  944, 469,  64, 10);		// X68000 Fantasy Zone 24KHz		※ModifyFirmwareが通用した場合のみ対応
+		SetParameter<T_Info_23>(nIdxNo[X68_Druaga],	0x0F,  672, 560, 315, 530, 5, 5, 1104, 595, 108, 31);		// X68000 Druaga 31KHz				※ModifyFirmwareが通用した場合のみ対応
+		SetParameter<T_Info_23>(nIdxNo[FMT_SRMP2PS],	0x0F,  736, 480, 320, 609, 3, 3,  896, 525, 144,  4);		// TOWNS スーパーリアル麻雀P2&P3	※ModifyFirmwareが通用した場合のみ対応
+
+		strcpy(szFilePath, MakePath(szFilePath, (nMode == ModeModifyExp) ? "_modexp" : "_mod"));
+		fpOut = fopen(szFilePath, "wb");
+		if (fpOut) {
+			if (fwrite(buf, nFileLen, 1, fpOut)) {
+				printf("Modified firmware %s writ ok\n", szFilePath);
+			}
+			else {
+				fprintf(stderr, "can't write %s\n", szFilePath);
+				ret = -20;
+			}
+			fclose(fpOut);
+		}
+		else {
+			fprintf(stderr, "can't open %s\n", szFilePath);
+			ret = -21;
+		}
+
 	}
 	else if (nMode == ModeDump) {
 		strcpy(szFilePath, MakePath(szFilePath, "", ".csv"));
