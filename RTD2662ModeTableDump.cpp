@@ -594,6 +594,11 @@ enMode		nMode		//!< i	:0=Dump 1=Modify 2=Modify4x3 -1=CheckOnly
 			model = LHRD56_IPAD97_POO;
 			// プリセットテーブルはP2314Hとほぼ同じ
 			break;
+		case 0x23230:
+			printf("RTD2513A (ponzu)\n");
+			model = RTD2513A;
+			// プリセットテーブルはP2314Hとほぼ同じ
+			break;
 		case 0x32000:	// JG2555TC
 			printf("JG2555TC Balck Jack iPad 9.7\n");
 			model = JG2555TC_IPAD97;
@@ -780,7 +785,7 @@ enMode		nMode		//!< i	:0=Dump 1=Modify 2=Modify4x3 -1=CheckOnly
 			}
 		}
 
-		if (model != PCB800099) {
+		if (model != PCB800099 && model != RTD2513A) {
 			bModify = ModifyFirmware(model);
 			if (bModify) {
 				printf("*** modify firmware success ***\n");
