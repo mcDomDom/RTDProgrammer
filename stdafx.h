@@ -35,6 +35,7 @@ enum enModel
 	P2314H_48H1R_A01,	// DELL P2314H 48H1R A01 もより氏情報提供ありがとうございます
 	P2314H_79H3D,		// DELL P2314H 79H3D
 	P2314H_79H3D_B01,	// DELL P2314H 79H3D B01 もより氏情報提供ありがとうございます
+	P2314H_9R54N,		// DELL P2314H 9R54N Thanks Carlos Bragatto
 	PHI_252B9,			// PHILIPS 252B9/11
 	LHRD56_IPAD97,		// 青ジャック基板にiPad 9.7型液晶を使用した15KHzモニタ用→なんか良い愛称ないんでしょうか
 	LHRD56_IPAD97_POO,	// 青ジャック基板にiPad 9.7型液晶を使用した15KHzモニタ用(別版) プー氏情報提供ありがとうございます
@@ -61,7 +62,8 @@ enum enModel
 	C27M2020DJP,		// Amazon C27M2020DJP みゆ氏情報提供ありがとうございます
 	X2377HS,			// iiyama X2377HS KAPPY.氏情報提供ありがとうございます
 	WIMAXIT,			// WIMAXIT FW:V001 楊手令氏情報提供ありがとうございます
-	RTD2513A			// RTD2513A使用基板 ponzu氏情報提供ありがとうございます
+	RTD2513A,			// RTD2513A使用基板 ponzu氏情報提供ありがとうございます
+	BL912				// BenQ BL912 Thanks Higgy69
 };
 
 enum enMode
