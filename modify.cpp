@@ -957,7 +957,7 @@ bool AddAspectModeForDell(enMode mode, enModel model)
 	}
 	else if (model == P2314H_9R54N) {
 		nFuncOffset = 0x1FA00;
-		nCallOffset = 0x1D1E4;
+		nCallOffset = 0x1D1E5;
 		strcpy(szBinName, "P2314H.bin");
 	}
 	else if (model == X2377HS) {
