@@ -393,7 +393,7 @@ enModel		model
 	if (nMode == ModeModify && 
 			(model == EK271Ebmix || model == EK271Ebmix_2 || model == EK271Ebmix_3 || 
 			 model == EK241YEbmix || model == EK241YEbmix_2 || 
-			 model == QG221QHbmiix || model == QG271Ebmiix || 
+			 model == QG221QHbmiix || model == QG241YEbmiix || model == QG271Ebmiix || 
 			 model == C24M2020DJP || model == C27M2020DJP || 
 			 model == KA222Q || model == KA222Q_2 || 
 			 model == EK221QE3bi)) {
@@ -402,7 +402,7 @@ enModel		model
 	else if (nMode == ModeModifyExp && 
 				 (model == EK271Ebmix || model == EK271Ebmix_2 || model == EK271Ebmix_3 || 
 				  model == EK241YEbmix || model == EK241YEbmix_2 || 
-				  model == QG221QHbmiix || model == QG271Ebmiix ||
+				  model == QG221QHbmiix || model == QG241YEbmiix || model == QG271Ebmiix ||
 	 			  model == C24M2020DJP || model == C27M2020DJP || 
 				  model == KA222Q || model == KA222Q_2 || 
 				  model == EK221QE3bi || model == CB242YEbmiprx || model == CB272Ebmiprx)) {
@@ -674,6 +674,11 @@ enMode		nMode		//!< i	:0=Dump 1=Modify 2=Modify4x3 -1=CheckOnly
 		case 0x45DCD:	// Acer QG271Ebmiix てまりあ氏
 			model = QG271Ebmiix;
 			printf("Acer QG271Ebmiix\n");
+			// プリセットテーブルはP2314Hとほぼ同じ
+			break;
+		case 0x52A50:	// Acer QG241YEbmiix Go氏
+			printf("Acer QG241YEbmiix\n");
+			model = QG241YEbmiix;
 			// プリセットテーブルはP2314Hとほぼ同じ
 			break;
 		case 0x52A56:	// Acer QG221QHbmiix KAPPY.氏

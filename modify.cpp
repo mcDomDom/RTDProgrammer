@@ -222,6 +222,10 @@ bool DisableAcerAspectChangeCheck(enModel model)
 		nOffset[0] = 0x6a191;
 		nOffset[1] = 0x6a1d2;
 	}
+	else if (model == QG241YEbmiix) {
+		nOffset[0] = 0x4D61A;
+		nOffset[1] = 0x4D65B;
+	}
 	else if (model == QG271Ebmiix) {
 		nOffset[0] = 0x6a9f2;
 		nOffset[1] = 0x6aa33;
@@ -289,6 +293,9 @@ void OutputISTPTR(enModel model, int &nOffset)
 	else if (model == QG221QHbmiix) {
 		buf[nOffset++] = 0x12;	buf[nOffset++] = 0x18;	buf[nOffset++] = 0x51;
 	}
+	else if (model == QG241YEbmiix) {
+		buf[nOffset++] = 0x12;	buf[nOffset++] = 0x18;	buf[nOffset++] = 0x3F;
+	}
 	else if (model == QG271Ebmiix) {
 		buf[nOffset++] = 0x12;	buf[nOffset++] = 0x18;	buf[nOffset++] = 0x4B;
 	}
@@ -316,70 +323,77 @@ void OutputISTPTR(enModel model, int &nOffset)
 	else if (model == CB272Ebmiprx) {
 		buf[nOffset++] = 0x12;	buf[nOffset++] = 0x17;	buf[nOffset++] = 0x24;
 	}
+	else {
+		printf("OutputISTPTR code not implemented\n");
+	}
 }
 
 int GetAspectFunctionOffset(enModel model, int &nOffsetRet)
 {
 	int nOffset = -1;
 	nOffsetRet = -1;
-	if (model == EK241YEbmix) {
+	if (model == EK241YEbmix) {			// 0x47
 		nOffset = 0x2f225;
 		nOffsetRet = 0x2f26c;
 	}
-	else if (model == EK241YEbmix_2) {
+	else if (model == EK241YEbmix_2) {	// 0x49
 		nOffset = 0x2e8ca;
 		nOffsetRet = 0x2e913;
 	}
-	else if (model == EK271Ebmix) {
+	else if (model == EK271Ebmix) {		// 0x47
 		nOffset = 0x2f486;
 		nOffsetRet = 0x2f4cd;
 	}
-	else if (model == EK271Ebmix_2) {
+	else if (model == EK271Ebmix_2) {	// 0x49
 		nOffset = 0x3f1fa;
 		nOffsetRet = 0x3f243;
 	}
-	else if (model == EK271Ebmix_3) {
+	else if (model == EK271Ebmix_3) {	// 0x49
 		nOffset = 0x3f273;
 		nOffsetRet = 0x3f2bc;
 	}
-	else if (model == QG221QHbmiix) {
+	else if (model == QG221QHbmiix) {	// 0x49
 		nOffset = 0x2f156;
 		nOffsetRet = 0x2f19f;
 	}
-	else if (model == QG271Ebmiix) {
+	else if (model == QG241YEbmiix) {	// 0x49
+		nOffset = 0x2f1ac;
+		nOffsetRet = 0x2f1f5;
+	}
+	else if (model == QG271Ebmiix) {	// 0x49
 		nOffset = 0x2f273;
 		nOffsetRet = 0x2f2bc;
 	}
-	else if (model == C24M2020DJP) {
+	else if (model == C24M2020DJP) {	// 0x49
 		nOffset = 0x5e746;
 		nOffsetRet = 0x5e78f;
 	}
-	else if (model == C27M2020DJP) {
+	else if (model == C27M2020DJP) {	// 0x49
 		nOffset = 0x5e6f2;
 		nOffsetRet = 0x5e73b;
 	}
-	else if (model == KA222Q) {
+	else if (model == KA222Q) {			// 0x49
 		nOffset = 0x1eff8;
 		nOffsetRet = 0x1f041;
 	}
-	else if (model == KA222Q_2) {
+	else if (model == KA222Q_2) {		// 0x49
 		nOffset = 0x2f071;
 		nOffsetRet = 0x2f0ba;
 	}
-	else if (model == EK221QE3bi) {
+	else if (model == EK221QE3bi) {		// 0x47
 		nOffset = 0x2f56c;
 		nOffsetRet = 0x2f5b3;
 	}
-	else if (model == CB242YEbmiprx) {
+	else if (model == CB242YEbmiprx) {	// 0x38
 		nOffset = 0x2f156;
 		nOffsetRet = 0x2f18e;
 	}
-	else if (model == CB272Ebmiprx) {
+	else if (model == CB272Ebmiprx) {	// 0x38
 		nOffset = 0x2f147;
 		nOffsetRet = 0x2f17f;
 	}
 	else {
-		printf("Invlid model\n");
+		printf("OutputISTPTR code not implemented\n");
 	}
 	return nOffset;
 }
@@ -392,7 +406,7 @@ bool OutputMovDPTRInputVHeight(enModel model, int &nOffset)
 	else if (model == EK241YEbmix_2) {
 		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE3;	buf[nOffset++] = 0xBF;	// MOV DPTR,Input Height
 	}
-	else if (model == QG221QHbmiix || model == QG271Ebmiix) {
+	else if (model == QG221QHbmiix || model == QG241YEbmiix|| model == QG271Ebmiix) {
 		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE4;	buf[nOffset++] = 0xC4;	// MOV DPTR,Input Height
 	}
 	else if (model == C24M2020DJP || model == C27M2020DJP) {
@@ -411,7 +425,7 @@ bool OutputMovDPTRInputVHeight(enModel model, int &nOffset)
 		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE4;	buf[nOffset++] = 0x03;	// MOV DPTR,Input Height
 	}
 	else {
-		printf("code not implemented\n");
+		printf("OutputMovDPTRInputVHeight code not implemented\n");
 		return false;
 	}
 
@@ -438,7 +452,7 @@ bool SetAcerWideModeFunction(enMode mode, enModel model, int &nOffset, int nOffs
 	else if (model == EK241YEbmix_2) {
 		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE3;	buf[nOffset++] = 0xB3;	// MOV DPTR,Input Width
 	}
-	else if (model == QG221QHbmiix || model == QG271Ebmiix) {
+	else if (model == QG221QHbmiix || model == QG241YEbmiix || model == QG271Ebmiix) {
 		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE4;	buf[nOffset++] = 0xB8;	// MOV DPTR,Input Width
 	}
 	else if (model == C24M2020DJP || model == C27M2020DJP) {
@@ -457,7 +471,7 @@ bool SetAcerWideModeFunction(enMode mode, enModel model, int &nOffset, int nOffs
 		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE3;	buf[nOffset++] = 0xF7;	// MOV DPTR,Input Width
 	}
 	else {
-		printf("code not implemented\n");
+		printf("SetAcerWideModeFunction code not implemented1\n");
 		return false;
 	}
 	// Set Input Width to HAspect
@@ -496,7 +510,7 @@ bool SetAcerWideModeFunction(enMode mode, enModel model, int &nOffset, int nOffs
 	else  if (model == EK241YEbmix_2) {
 		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE1;	buf[nOffset++] = 0xC8;	// MOV DPTR,Interlace Flag
 	}
-	else  if (model == QG221QHbmiix || model == QG271Ebmiix) {
+	else  if (model == QG221QHbmiix || model == QG241YEbmiix || model == QG271Ebmiix) {
 		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE4;	buf[nOffset++] = 0x4C;	// MOV DPTR,Interlace Flag
 	}
 	else  if (model == C24M2020DJP || model == C27M2020DJP) {
@@ -515,12 +529,12 @@ bool SetAcerWideModeFunction(enMode mode, enModel model, int &nOffset, int nOffs
 		buf[nOffset++] = 0x90;	buf[nOffset++] = 0xE3;	buf[nOffset++] = 0x8D;	// MOV DPTR,Interlace Flag
 	}
 	else {
-		printf("code not implemented\n");
+		printf("SetAcerWideModeFunction code not implemented2\n");
 		return false;
 	}
 	buf[nOffset++] = 0xE0;														// MOVX A,@DPTR
 	if (mode == ModeModifyExp || 
-		(model == QG221QHbmiix || model == QG271Ebmiix ||
+		(model == QG221QHbmiix || model == QG241YEbmiix || model == QG271Ebmiix ||
 		 model == C24M2020DJP || model == C27M2020DJP || 
 		 model == KA222Q || model == KA222Q_2 ||
 		 model == LHRD56_IPAD97 || model == CB242YEbmiprx || model == CB272Ebmiprx || 
@@ -542,7 +556,7 @@ bool SetAcerWideModeFunction(enMode mode, enModel model, int &nOffset, int nOffs
 		buf[nOffset++] = 0x12;	buf[nOffset++] = 0xE9;	buf[nOffset++] = 0x31;	// LCALL CheckInterlaceFlag
 	}
 	else {
-		printf("code not implemented\n");
+		printf("SetAcerWideModeFunction code not implemented3\n");
 		return false;
 	}
 	buf[nOffset++] = 0x70;	buf[nOffset++] = 0x07;								// JNZ Check VHeight < 350
@@ -850,6 +864,12 @@ bool AddAspectModeForAcer(enMode mode, enModel model)
 		// Bank6
 		buf[nCallOffset+3] = 0x04;	buf[nCallOffset+4] = 0xA0;
 	}
+	else if (model == QG241YEbmiix) {
+		nOffset = 0x6FD00;
+		nCallOffset = 0x30B01;
+		// Bank6
+		buf[nCallOffset+3] = 0x04;	buf[nCallOffset+4] = 0xA0;
+	}
 	else if (model == QG271Ebmiix) {
 		nOffset = 0x6FC00;
 		nCallOffset = 0x30B01;
@@ -869,7 +889,7 @@ bool AddAspectModeForAcer(enMode mode, enModel model)
 		buf[nCallOffset+3] = 0x02;	buf[nCallOffset+4] = 0x94;
 	}
 	else {
-		printf("code not implemented\n");
+		printf("AddAspectModeForAcer code not implemented1\n");
 		return false;
 	}
 
@@ -894,14 +914,14 @@ bool AddAspectModeForAcer(enMode mode, enModel model)
 	else if (model == KA222Q || model == KA222Q_2) {
 		buf[nOffset++]=0x90;	buf[nOffset++]=0xE2;	buf[nOffset++]=0x87;	// MOV	 DPTR,#0xE287
 	}
-	else if (model == QG221QHbmiix || model == QG271Ebmiix) {
+	else if (model == QG221QHbmiix || model == QG241YEbmiix || model == QG271Ebmiix) {
 		buf[nOffset++]=0x90;	buf[nOffset++]=0xE3;	buf[nOffset++]=0x08;	// MOV	 DPTR,#0xE308
 	}
 	else if (model == C24M2020DJP || model == C27M2020DJP) {
 		buf[nOffset++]=0x90;	buf[nOffset++]=0xE3;	buf[nOffset++]=0x35;	// MOV	 DPTR,#0xE335
 	}
 	else {
-		printf("code not implemented\n");
+		printf("AddAspectModeForAcer code not implemented2\n");
 		return false;
 	}
 	buf[nOffset++]=0xe0;														// MOVX	A,@DPTR

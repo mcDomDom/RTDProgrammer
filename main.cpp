@@ -438,7 +438,7 @@ bool ProgramFlash(const char *input_file_name, uint32_t chip_size, enModel model
 	}
 	else if (model == EK241YEbmix || model == EK241YEbmix_2 || model == EK271Ebmix_3 ||
 			 model == EK271Ebmix || model == EK271Ebmix_2 || 
-			 model == QG221QHbmiix || model == QG271Ebmiix || 
+			 model == QG221QHbmiix || model == QG241YEbmiix || model == QG271Ebmiix || 
 			 model == C24M2020DJP || model == C27M2020DJP || 
 			 model == KA222Q || model == KA222Q_2 ||
 			 model == EK221QE3bi ||
